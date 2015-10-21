@@ -1,0 +1,11 @@
+syntax:glob
+
+.project
+.pydevproject
+.idea
+.tox
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+docs/_build/

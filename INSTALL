@@ -1,0 +1,22 @@
+torrentool installation
+=======================
+
+
+Python ``setuptools`` package is required to install torrentool.
+
+
+Use the following command line to install torrentool from sources directory (containing setup.py):
+
+    easy_install .
+
+or
+
+    python setup.py install
+
+
+Alternatively you can install an up-to-date version of torrentool from PyPI:
+
+    easy_install torrentool
+
+
+Note: `easy_install` is bundled with ``setuptools``.
