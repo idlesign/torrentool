@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 from os.path import dirname, realpath, join
 from collections import OrderedDict
 import unittest

@@ -1,9 +1,15 @@
+import sys
 from collections import OrderedDict
 
 from torrentool.exceptions import BencodeDecodingError
 
 
-# todo py 2
+if sys.version_info >= (3, 0):
+    chr_ = chr
+
+else:
+    chr_ = lambda ch: ch
+
 
 
 class Bencode:
@@ -47,7 +53,7 @@ class Bencode:
             char_sub_idx = 0
 
             for char_sub_idx, char_sub in enumerate(sequence):
-                char_sub = chr(char_sub)
+                char_sub = chr_(char_sub)
                 if char_sub == till_char:
                     break
 
@@ -60,7 +66,7 @@ class Bencode:
 
         while encoded:
             char = encoded[0]
-            char = chr(char)
+            char = chr_(char)
 
             if char == 'd':  # Dictionary
                 stack_items.append(create_dict)
@@ -79,7 +85,7 @@ class Bencode:
                 stack_items.append(number)
                 encoded = encoded[char_sub_idx:]
 
-            elif char.isnumeric():  # String
+            elif char.isdigit():  # String
                 str_len, char_sub_idx = parse_forward(':', encoded)
                 last_char_idx = char_sub_idx+str_len
 
