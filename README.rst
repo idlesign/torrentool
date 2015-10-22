@@ -26,12 +26,12 @@ Description
 
 *The tool to work with torrent files.*
 
+Can be used both as python module and console application.
+
 Includes:
 
 * Torrent utils (to create and modify files)
 * Bencoding utils (decoder, encoder)
-
-Can be used both as python module and console application.
 
 .. code-block:: python
 
