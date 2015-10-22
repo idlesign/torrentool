@@ -1,17 +1,74 @@
 import sys
+
+from codecs import encode
 from collections import OrderedDict
 
-from torrentool.exceptions import BencodeDecodingError
+from torrentool.exceptions import BencodeDecodingError, BencodeEncodingError
 
+py3 = sys.version_info >= (3, 0)
 
-if sys.version_info >= (3, 0):
+if py3:
+    str_type = str
     chr_ = chr
 else:
+    str_type = basestring
     chr_ = lambda ch: ch
 
 
-class Bencode:
+class Bencode(object):
     """Exposes utilities for bencoding."""
+
+    @classmethod
+    def encode(cls, value, val_encoding='utf-8'):
+        """Encodes a value into bencoded bytes.
+
+        :param value: Python object to be encoded (str, int, list, dict).
+        :param str val_encoding: Encoding used by strings in a given object.
+        :rtype: bytes
+        """
+        def encode_str(v):
+            prefix = encode('%s:' % len(v), val_encoding)
+            try:
+                v_enc = encode(v, val_encoding)
+
+            except UnicodeDecodeError:
+                if py3:
+                    raise
+                else:
+                    # Suppose bytestring
+                    v_enc = v
+
+            return prefix + v_enc
+
+        def encode_(val):
+            if isinstance(val, str_type):
+                result = encode_str(val)
+
+            elif isinstance(val, int):
+                result = encode(('i%se' % val), val_encoding)
+
+            elif isinstance(val, (list, set, tuple)):
+                result = encode('l', val_encoding)
+                for item in val:
+                    result += encode_(item)
+                result += encode('e', val_encoding)
+
+            elif isinstance(val, dict):
+                result = encode('d', val_encoding)
+                for k, v in val.items():
+                    result += (encode_str(k) + encode_(v))
+                result += encode('e', val_encoding)
+
+            elif isinstance(val, bytes):  # Py3
+                result = encode('%s:' % len(val), val_encoding)
+                result += val
+
+            else:
+                raise BencodeEncodingError('Unable to encode `%s` type.' % type(val))
+
+            return result
+
+        return encode_(value)
 
     @classmethod
     def decode(cls, encoded):
@@ -20,9 +77,7 @@ class Bencode:
         Returns a list with decoded structures.
 
         :param bytes encoded:
-        :rtype: list
         """
-
         def create_dict(items):
             return OrderedDict(zip(*[iter(items)] * 2))
 
