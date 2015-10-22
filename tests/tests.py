@@ -13,7 +13,7 @@ CURRENT_DIR = dirname(realpath(__file__))
 class BencodeDecodeTests(unittest.TestCase):
 
     def test_read_file_dir(self):
-        expected = [
+        expected = (
             OrderedDict([
                 ('announce', 'http://track1.org/1/'),
                 ('announce-list', [
@@ -34,12 +34,12 @@ class BencodeDecodeTests(unittest.TestCase):
                     ('pieces', b'\x12\x16\x97N\xea\x14BV6\x02O\xcf\xac+\xcc\xf2\xed\x1f3\x81'),
                     ('private', 0)]))
             ])
-        ]
+        )
         decoded = Bencode.read_file(join(CURRENT_DIR, 'test_dir.torrent'))
         self.assertEqual(decoded, expected)
 
     def test_read_file(self):
-        expected = [
+        expected = (
             OrderedDict([
                 ('announce', 'udp://123.123.123.123'),
                 ('created by', 'Transmission/2.84 (14307)'),
@@ -53,34 +53,34 @@ class BencodeDecodeTests(unittest.TestCase):
                     ('private', 1)])
                  )
             ])
-        ]
+        )
         decoded = Bencode.read_file(join(CURRENT_DIR, 'test_file.torrent'))
         self.assertEqual(decoded, expected)
 
     def test_decode_simple(self):
         decode = Bencode.read_string
 
-        self.assertEqual(decode('4:spam')[0], 'spam')
-        self.assertEqual(decode('0:')[0], '')
+        self.assertEqual(decode('4:spam'), 'spam')
+        self.assertEqual(decode('0:'), '')
 
-        self.assertEqual(decode('i3e')[0], 3)
-        self.assertEqual(decode('i-3e')[0], -3)
-        self.assertEqual(decode('i04e')[0], 4)
-        self.assertEqual(decode('i0e')[0], 0)
+        self.assertEqual(decode('i3e'), 3)
+        self.assertEqual(decode('i-3e'), -3)
+        self.assertEqual(decode('i04e'), 4)
+        self.assertEqual(decode('i0e'), 0)
 
-        self.assertEqual(decode('l4:spam4:eggse')[0], ['spam', 'eggs'])
-        self.assertEqual(decode('le')[0], [])
+        self.assertEqual(decode('l4:spam4:eggse'), ['spam', 'eggs'])
+        self.assertEqual(decode('le'), [])
 
-        self.assertEqual(decode('d3:cow3:moo4:spam4:eggse')[0], OrderedDict([('cow', 'moo'), ('spam', 'eggs')]))
-        self.assertEqual(decode('d4:spaml1:a1:bee')[0], OrderedDict([('spam', ['a', 'b'])]))
+        self.assertEqual(decode('d3:cow3:moo4:spam4:eggse'), OrderedDict([('cow', 'moo'), ('spam', 'eggs')]))
+        self.assertEqual(decode('d4:spaml1:a1:bee'), OrderedDict([('spam', ['a', 'b'])]))
         self.assertEqual(
-            decode('d9:publisher3:bob17:publisher-webpage15:www.example.com18:publisher.location4:homee')[0],
+            decode('d9:publisher3:bob17:publisher-webpage15:www.example.com18:publisher.location4:homee'),
             OrderedDict([
                 ('publisher', 'bob'),
                 ('publisher-webpage', 'www.example.com'),
                 ('publisher.location', 'home'),
             ]))
-        self.assertEqual(decode('de')[0], OrderedDict())
+        self.assertEqual(decode('de'), OrderedDict())
 
     def test_error(self):
         self.assertRaises(BencodeDecodingError, Bencode.read_string, 'u:some')

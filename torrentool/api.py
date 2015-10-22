@@ -6,10 +6,8 @@ from torrentool.exceptions import BencodeDecodingError
 
 if sys.version_info >= (3, 0):
     chr_ = chr
-
 else:
     chr_ = lambda ch: ch
-
 
 
 class Bencode:
@@ -104,6 +102,9 @@ class Bencode:
 
             else:
                 raise BencodeDecodingError('Unable to interpret `%s` char.' % char)
+
+        if len(stack_items) == 1:
+            stack_items = stack_items.pop()
 
         return stack_items
 
