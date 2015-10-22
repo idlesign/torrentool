@@ -3,4 +3,5 @@ languages:
 
 exclude_paths:
 - "docs/*"
-- "tests/*"
+- "bin/*"
+- "torrentool/tests/*"
