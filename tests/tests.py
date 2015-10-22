@@ -1,8 +1,9 @@
 # -*- encoding: utf-8 -*-
 import sys
+import unittest
 from os.path import dirname, realpath, join
 from collections import OrderedDict
-import unittest
+from datetime import datetime
 
 from torrentool.api import Bencode, Torrent
 from torrentool.exceptions import BencodeDecodingError, BencodeEncodingError
@@ -77,7 +78,7 @@ class TorrentTests(unittest.TestCase):
         self.assertEqual(t.created_by, 'Transmission/2.84 (14307)')
         self.assertEqual(t.files, [('root.txt', 4)])
         self.assertEqual(t.total_size, 4)
-        self.assertEqual(t.announce_ulrs, ['udp://123.123.123.123'])
+        self.assertEqual(t.announce_urls, [['udp://123.123.123.123']])
         self.assertEqual(t.creation_date.isoformat(), '2015-10-21T17:40:05')
         self.assertIsNone(t.comment)
 
@@ -93,9 +94,38 @@ class TorrentTests(unittest.TestCase):
             ('torrtest/sub1/sub2/sub22.txt', 4)
         ])
         self.assertEqual(t.total_size, 12)
-        self.assertEqual(t.announce_ulrs, [['http://track1.org/1/', 'http://track2.org/2/']])
+        self.assertEqual(t.announce_urls, [['http://track1.org/1/', 'http://track2.org/2/']])
         self.assertEqual(t.creation_date.isoformat(), '2015-10-21T13:47:00')
         self.assertEqual(t.comment, u'примечание')
+
+    def test_setters(self):
+        t = Torrent()
+
+        self.assertIsNone(t.comment)
+        self.assertIsNone(t.created_by)
+        self.assertIsNone(t.creation_date)
+        self.assertEqual(t.total_size, 0)
+        self.assertEqual(t.announce_urls, [])
+        self.assertEqual(t.files, [])
+
+        t.comment = 'mycomment'
+        self.assertEqual(t.comment, 'mycomment')
+
+        t.created_by = 'some/1.0'
+        self.assertEqual(t.created_by, 'some/1.0')
+
+        now = datetime.now()
+        t.creation_date = now
+        self.assertEqual(t.creation_date, now.replace(microsecond=0))
+
+        t.announce_urls = 'some1'
+        self.assertEqual(t.announce_urls, [['some1']])
+        self.assertEqual(t._struct['announce'], 'some1')
+        self.assertNotIn('announce-list', t._struct)
+
+        t.announce_urls = ['some3', 'some4']
+        self.assertEqual(t.announce_urls, [['some3'], ['some4']])
+        self.assertEqual(t._struct['announce'], 'some3')
 
 
 class BencodeDecodeTests(unittest.TestCase):

@@ -211,7 +211,10 @@ class Torrent(object):
     def files(self):
         """Files in torrent. List of tuples (filepath, size)."""
         files = []
-        info = self._struct['info']
+        info = self._struct.get('info')
+
+        if info is None:
+            return files
 
         if 'files' in info:
             base = info['name']
@@ -229,13 +232,18 @@ class Torrent(object):
         """Total size of all files in torrent."""
         return reduce(lambda prev, curr: prev + curr[1], self.files, 0)
 
-    def _get_announce_ulrs(self):
+    def _get_announce_urls(self):
         urls = self._struct.get('announce-list')
+
         if not urls:
-            urls = [self._struct.get('announce')]
+            urls = self._struct.get('announce')
+            if not urls:
+                return []
+            urls = [[urls]]
+
         return urls
 
-    def _set_announce_ulrs(self, val):
+    def _set_announce_urls(self, val):
         self._struct['announce'] = ''
         self._struct['announce-list'] = []
 
@@ -243,20 +251,25 @@ class Torrent(object):
             del self._struct['announce-list']
             self._struct['announce'] = val
 
-        if isinstance(val, (list, tuple, set)):
+        types = (list, tuple, set)
+
+        if isinstance(val, types):
             length = len(val)
 
             if length:
                 if length == 1:
                     set_single(val[0])
                 else:
-                    self._struct['announce-list'] = val
+                    for item in val:
+                        if not isinstance(item, types):
+                            item = [item]
+                        self._struct['announce-list'].append(item)
                     self._struct['announce'] = val[0]
 
         else:
             set_single(val)
 
-    announce_ulrs = property(_get_announce_ulrs, _set_announce_ulrs)
+    announce_urls = property(_get_announce_urls, _set_announce_urls)
     """List of lists of tracker announce URLs."""
 
     def _get_comment(self):
