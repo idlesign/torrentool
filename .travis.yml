@@ -1,0 +1,18 @@
+language: python
+
+sudo: false
+
+python:
+  - 3.4
+  - 3.3
+  - 2.7
+
+install:
+  - pip install -U coverage coveralls
+
+
+script: coverage run -a --source=torrentool tests/runtests.py
+
+
+after_success:
+  coveralls
