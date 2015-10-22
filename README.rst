@@ -15,7 +15,7 @@ https://github.com/idlesign/torrentool
     :target: https://coveralls.io/r/idlesign/torrentool
 
 .. image:: https://img.shields.io/travis/idlesign/torrentool/master.svg
-    :target: https://travis-ci.org/idlesign/django-sitegate
+    :target: https://travis-ci.org/idlesign/torrentool
 
 .. image:: https://img.shields.io/codeclimate/github/idlesign/torrentool.svg
    :target: https://codeclimate.com/github/idlesign/torrentool
