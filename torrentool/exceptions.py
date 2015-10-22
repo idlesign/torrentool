@@ -1,11 +1,15 @@
 
 class TorrentoolException(Exception):
-    pass
+    """Base torrentool exception. All others are inherited from it."""
 
 
 class BencodeError(TorrentoolException):
-    pass
+    """Base exception for bencode related errors."""
 
 
 class BencodeDecodingError(BencodeError):
-    pass
+    """Raised when torrentool is unable to decode bencoded data."""
+
+
+class BencodeEncodingError(BencodeError):
+    """Raised when torrentool is unable to encode data into bencode."""
