@@ -13,3 +13,7 @@ class BencodeDecodingError(BencodeError):
 
 class BencodeEncodingError(BencodeError):
     """Raised when torrentool is unable to encode data into bencode."""
+
+
+class TorrentError(TorrentoolException):
+    """Base exception for Torrent object related errors."""

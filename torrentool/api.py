@@ -1,13 +1,21 @@
-import sys
-
+from sys import version_info
+from os.path import join
+from hashlib import sha1
 from codecs import encode
+from datetime import datetime
+from calendar import timegm
+from functools import reduce
 from collections import OrderedDict
 
-from torrentool.exceptions import BencodeDecodingError, BencodeEncodingError
+from .exceptions import BencodeDecodingError, BencodeEncodingError, TorrentError
+from torrentool import VERSION
 
-py3 = sys.version_info >= (3, 0)
 
-if py3:
+VERSION_STR = 'torrentool/%s' % '.'.join(map(str, VERSION))
+
+PY3 = version_info >= (3, 0)
+
+if PY3:
     str_type = str
     chr_ = chr
 else:
@@ -32,7 +40,7 @@ class Bencode(object):
                 v_enc = encode(v, val_encoding)
 
             except UnicodeDecodeError:
-                if py3:
+                if PY3:
                     raise
                 else:
                     # Suppose bytestring
@@ -74,7 +82,7 @@ class Bencode(object):
     def decode(cls, encoded):
         """Decodes bencoded data introduced as bytes.
 
-        Returns a list with decoded structures.
+        Returns decoded structure(s).
 
         :param bytes encoded:
         """
@@ -144,8 +152,9 @@ class Bencode(object):
 
                 string = encoded[char_sub_idx:last_char_idx]
                 try:
-                    string = string.decode()
+                    string = string.decode('utf-8')
                 except UnicodeDecodeError:
+                    # Considered bytestring (e.g. `pieces` hashes concatenation).
                     pass
 
                 stack_items.append(string)
@@ -167,7 +176,7 @@ class Bencode(object):
     def read_string(cls, string):
         """Decodes a given bencoded string.
 
-        Returns a list with decoded structures.
+        Returns decoded structure(s).
 
         :param str string:
         :rtype: list
@@ -179,7 +188,7 @@ class Bencode(object):
     def read_file(cls, filepath):
         """Decodes bencoded data of a given file.
 
-        Returns a list with decoded structures.
+        Returns decoded structure(s).
 
         :param str filepath:
         :rtype: list
@@ -187,3 +196,138 @@ class Bencode(object):
         with open(filepath, mode='rb') as f:
             contents = f.read()
         return cls.decode(contents)
+
+
+class Torrent(object):
+    """Represents a torrent file, and exposes utilities to work with it."""
+
+    _filepath = None
+
+    def __init__(self, dict_struct=None):
+        dict_struct = dict_struct or {}
+        self._struct = dict_struct
+
+    @property
+    def files(self):
+        """Files in torrent. List of tuples (filepath, size)."""
+        files = []
+        info = self._struct['info']
+
+        if 'files' in info:
+            base = info['name']
+
+            for file in info['files']:
+                files.append((join(base, *file['path']), file['length']))
+
+        else:
+            files.append((info['name'], info['length']))
+
+        return files
+
+    @property
+    def total_size(self):
+        """Total size of all files in torrent."""
+        return reduce(lambda prev, curr: prev + curr[1], self.files, 0)
+
+    def _get_announce_ulrs(self):
+        urls = self._struct.get('announce-list')
+        if not urls:
+            urls = [self._struct.get('announce')]
+        return urls
+
+    def _set_announce_ulrs(self, val):
+        self._struct['announce'] = ''
+        self._struct['announce-list'] = []
+
+        def set_single(val):
+            del self._struct['announce-list']
+            self._struct['announce'] = val
+
+        if isinstance(val, (list, tuple, set)):
+            length = len(val)
+
+            if length:
+                if length == 1:
+                    set_single(val[0])
+                else:
+                    self._struct['announce-list'] = val
+                    self._struct['announce'] = val[0]
+
+        else:
+            set_single(val)
+
+    announce_ulrs = property(_get_announce_ulrs, _set_announce_ulrs)
+    """List of lists of tracker announce URLs."""
+
+    def _get_comment(self):
+        return self._struct.get('comment')
+
+    def _set_comment(self, val):
+        self._struct['comment'] = val
+
+    comment = property(_get_comment, _set_comment)
+    """Optional. Free-form textual comments of the author."""
+
+    def _get_creation_date(self):
+        date = self._struct.get('creation date')
+        if date is not None:
+            date = datetime.utcfromtimestamp(int(date))
+        return date
+
+    def _set_creation_date(self, val):
+        self._struct['creation date'] = timegm(val.timetuple())
+
+    creation_date = property(_get_creation_date, _set_creation_date)
+    """Optional. The creation time of the torrent, in standard UNIX epoch format. UTC."""
+
+    def _get_created_by(self):
+        return self._struct.get('created by')
+
+    def _set_created_by(self, val):
+        self._struct['created by'] = val
+
+    created_by = property(_get_created_by, _set_created_by)
+    """Optional. Name and version of the program used to create the .torrent"""
+
+    def to_file(self, filepath=None, encoding='utf-8'):
+        """Writes Torrent object into file, either
+
+        :param filepath:
+        :param str encoding: Encoding used by strings in Torrent object.
+        """
+        if filepath is None and self._filepath is None:
+            raise TorrentError('Unable to save torrent to file: no filepath supplied.')
+
+        if filepath is not None:
+            self._filepath = filepath
+
+        with open(filepath, mode='wb') as f:
+            f.write(self.to_string(encoding))
+
+    def to_string(self, encoding='utf-8'):
+        """Returns bytes representing torrent file.
+
+        :param str encoding: Encoding used by strings in Torrent object.
+        :rtype: bytes
+        """
+        return Bencode.encode(self._struct, val_encoding=encoding)
+
+    @classmethod
+    def from_string(cls, string):
+        """Alternative constructor to get Torrent object from string.
+
+        :param str string:
+        :rtype: Torrent
+        """
+        return cls(Bencode.read_string(string))
+
+    @classmethod
+    def from_file(cls, filepath):
+        """Alternative constructor to get Torrent object from file.
+
+        :param str filepath:
+        :rtype: Torrent
+        """
+        torrent = cls(Bencode.read_file(filepath))
+        torrent._filepath = filepath
+        return torrent

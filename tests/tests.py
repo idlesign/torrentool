@@ -4,7 +4,7 @@ from os.path import dirname, realpath, join
 from collections import OrderedDict
 import unittest
 
-from torrentool.api import Bencode
+from torrentool.api import Bencode, Torrent
 from torrentool.exceptions import BencodeDecodingError, BencodeEncodingError
 
 
@@ -27,7 +27,7 @@ STRUCT_TORRENT_WITH_DIR = (
         ('announce-list', [
             ['http://track1.org/1/', 'http://track2.org/2/']
         ]),
-        ('comment', 'примечание'),
+        ('comment', u'примечание'),
         ('created by', 'Transmission/2.84 (14307)'),
         ('creation date', 1445435220),
         ('encoding', 'UTF-8'),
@@ -65,6 +65,37 @@ def read_file(filepath):
     with open(filepath, mode='rb') as f:
         contents = f.read()
     return contents
+
+
+class TorrentTests(unittest.TestCase):
+
+    def test_getters_simple(self):
+        t = Torrent.from_file(FPATH_TORRENT_SIMPLE)
+
+        self.assertEqual(t._filepath, FPATH_TORRENT_SIMPLE)
+
+        self.assertEqual(t.created_by, 'Transmission/2.84 (14307)')
+        self.assertEqual(t.files, [('root.txt', 4)])
+        self.assertEqual(t.total_size, 4)
+        self.assertEqual(t.announce_ulrs, ['udp://123.123.123.123'])
+        self.assertEqual(t.creation_date.isoformat(), '2015-10-21T17:40:05')
+        self.assertIsNone(t.comment)
+
+    def test_getters_dir(self):
+        t = Torrent.from_file(FPATH_TORRENT_WITH_DIR)
+
+        self.assertEqual(t._filepath, FPATH_TORRENT_WITH_DIR)
+
+        self.assertEqual(t.created_by, 'Transmission/2.84 (14307)')
+        self.assertEqual(t.files, [
+            ('torrtest/root.txt', 4),
+            ('torrtest/sub1/sub11.txt', 4),
+            ('torrtest/sub1/sub2/sub22.txt', 4)
+        ])
+        self.assertEqual(t.total_size, 12)
+        self.assertEqual(t.announce_ulrs, [['http://track1.org/1/', 'http://track2.org/2/']])
+        self.assertEqual(t.creation_date.isoformat(), '2015-10-21T13:47:00')
+        self.assertEqual(t.comment, u'примечание')
 
 
 class BencodeDecodeTests(unittest.TestCase):
@@ -116,7 +147,7 @@ class BencodeEncodeTests(unittest.TestCase):
 
         self.assertEqual(encode(['spam', 'eggs']), enc('l4:spam4:eggse'))
         self.assertEqual(encode([]), enc('le'))
-        
+
         self.assertEqual(encode(OrderedDict([('cow', 'moo'), ('spam', 'eggs')])), enc('d3:cow3:moo4:spam4:eggse'))
         self.assertEqual(encode(OrderedDict([('spam', ['a', 'b'])])), enc('d4:spaml1:a1:bee'))
         self.assertEqual(
