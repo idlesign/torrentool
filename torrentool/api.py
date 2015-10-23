@@ -219,8 +219,8 @@ class Torrent(object):
         if 'files' in info:
             base = info['name']
 
-            for file in info['files']:
-                files.append((join(base, *file['path']), file['length']))
+            for f in info['files']:
+                files.append((join(base, *f['path']), f['length']))
 
         else:
             files.append((info['name'], info['length']))
