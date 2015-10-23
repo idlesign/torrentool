@@ -314,14 +314,14 @@ class Torrent(object):
         if filepath is not None:
             self._filepath = filepath
 
-        with open(filepath, mode='wb') as f:
+        with open(self._filepath, mode='wb') as f:
             f.write(self.to_string(encoding))
 
     def to_string(self, encoding='utf-8'):
         """Returns bytes representing torrent file.
 
         :param str encoding: Encoding used by strings in Torrent object.
-        :rtype: bytes
+        :rtype: bytearray
         """
         return Bencode.encode(self._struct, val_encoding=encoding)
 
