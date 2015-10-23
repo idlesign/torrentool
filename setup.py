@@ -33,6 +33,8 @@ setup(
     install_requires=[],
     scripts=SCRIPTS,
 
+    test_suite='tests',
+
     classifiers=[
         # As in https://pypi.python.org/pypi?:action=list_classifiers
         'Development Status :: 4 - Beta',
