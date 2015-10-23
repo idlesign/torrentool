@@ -29,12 +29,13 @@ Description
 
 *The tool to work with torrent files.*
 
-Can be used both as python module and console application.
+Works on Python 2.7+ and 3.3+.
 
 Includes:
 
-* Torrent utils (to create and modify files)
+* Torrent utils (file read and modification)
 * Bencoding utils (decoder, encoder)
+
 
 .. code-block:: python
 
@@ -42,12 +43,10 @@ Includes:
 
     my_torrent = Torrent.from_file('/home/idle/some.torrent')
 
-    print(my_torrent.announce_urls)  # Get torrent trackers announce URLs.
+    my_torrent.announce_urls  # Torrent trackers announce URLs.
+    my_torrent.total_size  # Total files size in bytes.
+
     my_torrent.comment = 'Your torrents are mine.'  # Set a comment.
 
+    my_torrent.to_file()  # Save changes to file
 
-
-Documentation
--------------
-
-Will be available at http://torrentool.readthedocs.org/
