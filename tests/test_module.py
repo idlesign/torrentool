@@ -1,12 +1,14 @@
 # -*- encoding: utf-8 -*-
 import sys
 import unittest
+from uuid import uuid4
+from tempfile import mkdtemp
 from os.path import dirname, realpath, join
 from collections import OrderedDict
 from datetime import datetime
 
 from torrentool.api import Bencode, Torrent
-from torrentool.exceptions import BencodeDecodingError, BencodeEncodingError
+from torrentool.exceptions import BencodeDecodingError, BencodeEncodingError, TorrentError
 
 
 if sys.version_info >= (3, 0):
@@ -126,6 +128,27 @@ class TorrentTests(unittest.TestCase):
         t.announce_urls = ['some3', 'some4']
         self.assertEqual(t.announce_urls, [['some3'], ['some4']])
         self.assertEqual(t._struct['announce'], 'some3')
+
+        t.announce_urls = ['some5']
+        self.assertEqual(t.announce_urls, [['some5']])
+        self.assertEqual(t._struct['announce'], 'some5')
+        self.assertNotIn('announce-list', t._struct)
+
+    def test_from_string(self):
+        torrstr = '4:spam'
+        t = Torrent.from_string(torrstr)
+        self.assertEqual(t._struct, 'spam')
+
+    def test_to_file(self):
+        t0 = Torrent({})
+        self.assertRaises(TorrentError, t0.to_file)
+
+        t1 = Torrent.from_file(FPATH_TORRENT_SIMPLE)
+        fpath = join(mkdtemp(), str(uuid4()))
+        t1.to_file(fpath)
+
+        t2 = Torrent.from_file(fpath)
+        self.assertEqual(t1._struct, t2._struct)
 
 
 class BencodeDecodeTests(unittest.TestCase):
