@@ -41,10 +41,14 @@ Includes:
 
     from torrentool.api import Torrent
 
+
     my_torrent = Torrent.from_file('/home/idle/some.torrent')
 
     my_torrent.announce_urls  # Torrent trackers announce URLs.
     my_torrent.total_size  # Total files size in bytes.
+    my_torrent.magnet_link  # Magnet link for you.
+
+    # Etc.
 
     my_torrent.comment = 'Your torrents are mine.'  # Set a comment.
 
