@@ -7,7 +7,7 @@ from os.path import dirname, realpath, join
 from collections import OrderedDict
 from datetime import datetime
 
-from torrentool.api import Bencode, Torrent
+from torrentool.api import Bencode, Torrent, get_app_version
 from torrentool.exceptions import BencodeDecodingError, BencodeEncodingError, TorrentError
 
 
@@ -115,7 +115,6 @@ class TorrentTests(unittest.TestCase):
         self.assertIn(hash_expected, magnet)
         self.assertIn('btih', magnet)
         self.assertIn('magnet:', magnet)
-
 
     def test_setters(self):
         t = Torrent()
@@ -237,6 +236,12 @@ class BencodeEncodeTests(unittest.TestCase):
 
     def test_errors(self):
         self.assertRaises(BencodeEncodingError, Bencode.encode, object())
+
+
+class OtherTests(unittest.TestCase):
+
+    def test_get_app_version(self):
+        self.assertIn('torrentool', get_app_version())
 
 
 if __name__ == '__main__':

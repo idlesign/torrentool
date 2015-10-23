@@ -19,6 +19,15 @@ else:
     chr_ = lambda ch: ch
 
 
+def get_app_version():
+    """Returns full version string including application name
+    suitable for putting into Torrent.created_by.
+
+    """
+    from torrentool import VERSION
+    return 'torrentool/%s' % '.'.join(map(str, VERSION))
+
+
 class Bencode(object):
     """Exposes utilities for bencoding."""
 
