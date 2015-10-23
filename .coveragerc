@@ -1,3 +1,2 @@
 [run]
-include = torrentool/*
-omit = torrentool/tests/*
+source = torrentool/

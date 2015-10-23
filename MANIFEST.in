@@ -10,7 +10,7 @@ recursive-include docs .py
 
 recursive-include bin *
 
-recursive-include torrentool/tests *
+recursive-include tests *
 
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
