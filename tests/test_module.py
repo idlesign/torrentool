@@ -84,6 +84,14 @@ class TorrentTests(unittest.TestCase):
         self.assertEqual(t.creation_date.isoformat(), '2015-10-21T17:40:05')
         self.assertIsNone(t.comment)
 
+        hash_expected = '238967c8417cc6ccc378df16687d1958277f270b'
+        self.assertEqual(t.info_hash, hash_expected)
+
+        magnet = t.magnet_link
+        self.assertIn(hash_expected, magnet)
+        self.assertIn('btih', magnet)
+        self.assertIn('magnet:', magnet)
+
     def test_getters_dir(self):
         t = Torrent.from_file(FPATH_TORRENT_WITH_DIR)
 
@@ -99,6 +107,15 @@ class TorrentTests(unittest.TestCase):
         self.assertEqual(t.announce_urls, [['http://track1.org/1/', 'http://track2.org/2/']])
         self.assertEqual(t.creation_date.isoformat(), '2015-10-21T13:47:00')
         self.assertEqual(t.comment, u'примечание')
+
+        hash_expected = 'd66b9e846cd726c532d8d878e971995f2d50b142'
+        self.assertEqual(t.info_hash, hash_expected)
+
+        magnet = t.magnet_link
+        self.assertIn(hash_expected, magnet)
+        self.assertIn('btih', magnet)
+        self.assertIn('magnet:', magnet)
+
 
     def test_setters(self):
         t = Torrent()

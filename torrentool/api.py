@@ -8,10 +8,6 @@ from functools import reduce
 from collections import OrderedDict
 
 from .exceptions import BencodeDecodingError, BencodeEncodingError, TorrentError
-from torrentool import VERSION
-
-
-VERSION_STR = 'torrentool/%s' % '.'.join(map(str, VERSION))
 
 PY3 = version_info >= (3, 0)
 
@@ -231,6 +227,21 @@ class Torrent(object):
     def total_size(self):
         """Total size of all files in torrent."""
         return reduce(lambda prev, curr: prev + curr[1], self.files, 0)
+
+    @property
+    def info_hash(self):
+        """Hash of torrent file info section. Also known as torrent hash."""
+        info = self._struct.get('info')
+
+        if info is None:
+            return None
+
+        return sha1(Bencode.encode(info)).hexdigest()
+
+    @property
+    def magnet_link(self):
+        """Magnet link using BTIH (BitTorrent Info Hash) URN."""
+        return 'magnet:?xt=urn:btih:' + self.info_hash
 
     def _get_announce_urls(self):
         urls = self._struct.get('announce-list')
