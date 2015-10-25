@@ -43,7 +43,6 @@ class Bencode(object):
         val_encoding='utf-8'
 
         def encode_str(v):
-            prefix = encode('%s:' % len(v), val_encoding)
             try:
                 v_enc = encode(v, val_encoding)
 
@@ -54,6 +53,7 @@ class Bencode(object):
                     # Suppose bytestring
                     v_enc = v
 
+            prefix = encode('%s:' % len(v_enc), val_encoding)
             return prefix + v_enc
 
         def encode_(val):

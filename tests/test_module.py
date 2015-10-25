@@ -121,7 +121,7 @@ class TorrentTests(unittest.TestCase):
         self.assertEqual(t.creation_date.isoformat(), '2015-10-25T09:42:04')
         self.assertEqual(t.comment, u'примечание')
 
-        hash_expected = 'ae513c403120f6ae8a2d5c11ae969340a9af0ca1'
+        hash_expected = 'c815be93f20bf8b12fed14bee35c14b19b1d1984'
         self.assertEqual(t.info_hash, hash_expected)
 
         magnet = t.magnet_link
@@ -255,6 +255,10 @@ class BencodeEncodeTests(unittest.TestCase):
     def test_encode_complex(self):
         encoded = encode(STRUCT_TORRENT_SIMPLE)
         from_file = read_file(FPATH_TORRENT_SIMPLE)
+        self.assertEqual(encoded, from_file)
+
+        encoded = encode(STRUCT_TORRENT_WITH_DIR)
+        from_file = read_file(FPATH_TORRENT_WITH_DIR)
         self.assertEqual(encoded, from_file)
 
     def test_errors(self):
