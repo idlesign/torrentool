@@ -32,17 +32,18 @@ STRUCT_TORRENT_WITH_DIR = (
         ]),
         ('comment', u'примечание'),
         ('created by', 'Transmission/2.84 (14307)'),
-        ('creation date', 1445435220),
+        ('creation date', 1445766124),
         ('encoding', 'UTF-8'),
         ('info', OrderedDict([
             ('files', [
                 OrderedDict([('length', 4), ('path', ['root.txt'])]),
                 OrderedDict([('length', 4), ('path', ['sub1', 'sub11.txt'])]),
+                OrderedDict([('length', 11), ('path', ['sub1', 'sub2', u'кириллица.txt'])]),
                 OrderedDict([('length', 4), ('path', ['sub1', 'sub2', 'sub22.txt'])])
             ]),
             ('name', 'torrtest'),
             ('piece length', 32768),
-            ('pieces', b'\x12\x16\x97N\xea\x14BV6\x02O\xcf\xac+\xcc\xf2\xed\x1f3\x81'),
+            ('pieces', b'?\x9ew\xc1A\x84\x8d\x8b\xb7\x91\x19\xe3(\x1e\x1ex\x1e\xde\xa8\xdc'),
             ('private', 0)]))
     ])
 )
@@ -71,6 +72,17 @@ def read_file(filepath):
 
 
 class TorrentTests(unittest.TestCase):
+
+    def test_create(self):
+        t = Torrent.create_from(join(CURRENT_DIR, 'torrtest', 'root.txt'))
+        t.private = True
+        self.assertEqual(t._struct['info'], STRUCT_TORRENT_SIMPLE['info'])
+
+        # todo
+        # t = Torrent.create_from(join(CURRENT_DIR, 'torrtest'))
+        # expected = dict(STRUCT_TORRENT_WITH_DIR['info'])
+        # del expected['private']
+        # self.assertEqual(t._struct['info'], expected)
 
     def test_getters_simple(self):
         t = Torrent.from_file(FPATH_TORRENT_SIMPLE)
@@ -101,14 +113,15 @@ class TorrentTests(unittest.TestCase):
         self.assertEqual(t.files, [
             ('torrtest/root.txt', 4),
             ('torrtest/sub1/sub11.txt', 4),
+            (u'torrtest/sub1/sub2/кириллица.txt', 11),
             ('torrtest/sub1/sub2/sub22.txt', 4)
         ])
-        self.assertEqual(t.total_size, 12)
+        self.assertEqual(t.total_size, 23)
         self.assertEqual(t.announce_urls, [['http://track1.org/1/', 'http://track2.org/2/']])
-        self.assertEqual(t.creation_date.isoformat(), '2015-10-21T13:47:00')
+        self.assertEqual(t.creation_date.isoformat(), '2015-10-25T09:42:04')
         self.assertEqual(t.comment, u'примечание')
 
-        hash_expected = 'd66b9e846cd726c532d8d878e971995f2d50b142'
+        hash_expected = 'ae513c403120f6ae8a2d5c11ae969340a9af0ca1'
         self.assertEqual(t.info_hash, hash_expected)
 
         magnet = t.magnet_link
@@ -119,6 +132,7 @@ class TorrentTests(unittest.TestCase):
     def test_setters(self):
         t = Torrent()
 
+        self.assertIsNone(t.info_hash)
         self.assertIsNone(t.comment)
         self.assertIsNone(t.created_by)
         self.assertIsNone(t.creation_date)
@@ -149,6 +163,15 @@ class TorrentTests(unittest.TestCase):
         self.assertEqual(t.announce_urls, [['some5']])
         self.assertEqual(t._struct['announce'], 'some5')
         self.assertNotIn('announce-list', t._struct)
+
+        self.assertFalse(t.private)
+        t.private = False
+        self.assertFalse(t.private)
+        t.private = True
+        self.assertTrue(t.private)
+        t.private = False
+        self.assertFalse(t.private)
+
 
     def test_from_string(self):
         torrstr = '4:spam'
