@@ -210,7 +210,7 @@ class Torrent(object):
     _filepath = None
 
     def __init__(self, dict_struct=None):
-        dict_struct = dict_struct or {}
+        dict_struct = dict_struct or {'info': {}}
         self._struct = dict_struct
 
     @property
@@ -219,7 +219,7 @@ class Torrent(object):
         files = []
         info = self._struct.get('info')
 
-        if info is None:
+        if not info:
             return files
 
         if 'files' in info:
@@ -243,7 +243,7 @@ class Torrent(object):
         """Hash of torrent file info section. Also known as torrent hash."""
         info = self._struct.get('info')
 
-        if info is None:
+        if not info:
             return None
 
         return sha1(Bencode.encode(info)).hexdigest()
@@ -322,6 +322,25 @@ class Torrent(object):
 
     created_by = property(_get_created_by, _set_created_by)
     """Optional. Name and version of the program used to create the .torrent"""
+
+    def _get_private(self):
+        return self._struct.get('info', {}).get('private', False)
+
+    def _set_private(self, val):
+        if not val:
+            try:
+                del self._struct['info']['private']
+            except KeyError:
+                pass
+        else:
+            self._struct['info']['private'] = 1
+
+    private = property(_get_private, _set_private)
+    """Optional. If True the client MUST publish its presence to get other peers
+    ONLY via the trackers explicitly described in the metainfo file. If False or is not present,
+    the client may obtain peer from other means, e.g. PEX peer exchange, dht.
+
+    """
 
     def to_file(self, filepath=None, encoding='utf-8'):
         """Writes Torrent object into file, either
