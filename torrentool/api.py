@@ -372,7 +372,7 @@ class Torrent(object):
 
         if is_dir:
             for base, _, files in walk(src_path):
-                target_files.extend([join(base, fname) for fname in files])
+                target_files.extend([join(base, fname) for fname in sorted(files)])
 
         else:
             target_files.append(src_path)
@@ -380,9 +380,11 @@ class Torrent(object):
         target_files_ = []
         total_size = 0
         for fpath in target_files:
-            size_file = getsize(fpath)
-            target_files_.append((fpath, size_file, normpath(fpath.replace(src_path, '')).strip(sep).split(sep)))
-            total_size += size_file
+            file_size = getsize(fpath)
+            if not file_size:
+                continue
+            target_files_.append((fpath, file_size, normpath(fpath.replace(src_path, '')).strip(sep).split(sep)))
+            total_size += file_size
 
         return target_files_, total_size
 
