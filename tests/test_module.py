@@ -7,7 +7,8 @@ from os.path import dirname, realpath, join
 from collections import OrderedDict
 from datetime import datetime
 
-from torrentool.api import Bencode, Torrent, get_app_version
+from torrentool.utils import get_app_version
+from torrentool.api import Bencode, Torrent
 from torrentool.exceptions import BencodeDecodingError, BencodeEncodingError, TorrentError
 
 
