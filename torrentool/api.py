@@ -33,13 +33,15 @@ class Bencode(object):
     """Exposes utilities for bencoding."""
 
     @classmethod
-    def encode(cls, value, val_encoding='utf-8'):
+    def encode(cls, value):
         """Encodes a value into bencoded bytes.
 
         :param value: Python object to be encoded (str, int, list, dict).
         :param str val_encoding: Encoding used by strings in a given object.
         :rtype: bytes
         """
+        val_encoding='utf-8'
+
         def encode_str(v):
             prefix = encode('%s:' % len(v), val_encoding)
             try:
@@ -342,11 +344,10 @@ class Torrent(object):
 
     """
 
-    def to_file(self, filepath=None, encoding='utf-8'):
+    def to_file(self, filepath=None):
         """Writes Torrent object into file, either
 
         :param filepath:
-        :param str encoding: Encoding used by strings in Torrent object.
         """
         if filepath is None and self._filepath is None:
             raise TorrentError('Unable to save torrent to file: no filepath supplied.')
@@ -355,15 +356,15 @@ class Torrent(object):
             self._filepath = filepath
 
         with open(self._filepath, mode='wb') as f:
-            f.write(self.to_string(encoding))
+            f.write(self.to_string())
 
-    def to_string(self, encoding='utf-8'):
+    def to_string(self):
         """Returns bytes representing torrent file.
 
         :param str encoding: Encoding used by strings in Torrent object.
         :rtype: bytearray
         """
-        return Bencode.encode(self._struct, val_encoding=encoding)
+        return Bencode.encode(self._struct)
 
     @classmethod
     def _get_target_files_info(cls, src_path):
