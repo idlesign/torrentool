@@ -14,9 +14,11 @@ PY3 = version_info >= (3, 0)
 
 if PY3:
     str_type = str
+    byte_types = (bytes, bytearray)
     chr_ = chr
 else:
     str_type = basestring
+    byte_types = bytes
     chr_ = lambda ch: ch
 
 
@@ -75,7 +77,7 @@ class Bencode(object):
                     result += (encode_str(k) + encode_(v))
                 result += encode('e', val_encoding)
 
-            elif isinstance(val, bytes):  # Py3
+            elif isinstance(val, byte_types):
                 result = encode('%s:' % len(val), val_encoding)
                 result += val
 
@@ -439,7 +441,7 @@ class Torrent(object):
 
         info = {
             'name': basename(src_path),
-            'pieces': pieces,
+            'pieces': bytes(pieces),
             'piece length': size_piece,
         }
 
