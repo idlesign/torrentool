@@ -1,5 +1,6 @@
 from sys import version_info
-from os.path import join
+from os.path import join, isdir, getsize, normpath, basename
+from os import walk, sep
 from hashlib import sha1
 from codecs import encode
 from datetime import datetime
@@ -344,6 +345,98 @@ class Torrent(object):
         :rtype: bytearray
         """
         return Bencode.encode(self._struct, val_encoding=encoding)
+
+    @classmethod
+    def _get_target_files_info(cls, src_path):
+        is_dir = isdir(src_path)
+        target_files = []
+
+        if is_dir:
+            for base, _, files in walk(src_path):
+                target_files.extend([join(base, fname) for fname in files])
+
+        else:
+            target_files.append(src_path)
+
+        target_files_ = []
+        total_size = 0
+        for fpath in target_files:
+            size_file = getsize(fpath)
+            target_files_.append((fpath, size_file, normpath(fpath.replace(src_path, '')).strip(sep).split(sep)))
+            total_size += size_file
+
+        return target_files_, total_size
+
+    @classmethod
+    def create_from(cls, src_path):
+        """Returns Torrent object created from a file or a directory.
+
+        :param str src_path:
+        :rtype: Torrent
+        """
+        is_dir = isdir(src_path)
+        target_files, size_data = cls._get_target_files_info(src_path)
+
+        SIZE_MIN = 32768  # 32 KiB
+        SIZE_DEFAULT = 262144  # 256 KiB
+        SIZE_MAX = 1048576  # 1 MiB
+
+        CHUNKS_MIN = 1000  # todo use those limits as advised
+        CHUNKS_MAX = 2200
+
+        size_piece = SIZE_MIN
+        if size_data > SIZE_MIN:
+            size_piece = SIZE_DEFAULT
+
+        if size_piece > SIZE_MAX:
+            size_piece = SIZE_MAX
+
+        def read(filepath):
+            with open(filepath, 'rb') as f:
+                while True:
+                    chunk = f.read(size_piece-len(pieces_buffer))
+                    chunk_size = len(chunk)
+                    if chunk_size == 0:
+                        break
+                    yield chunk
+
+        pieces = bytearray()
+        pieces_buffer = bytearray()
+
+        for fpath, _, _ in target_files:
+            for chunk in read(fpath):
+                pieces_buffer += chunk
+
+                if len(pieces_buffer) == size_piece:
+                    pieces += sha1(pieces_buffer).digest()[:20]
+                    pieces_buffer = bytearray()
+
+        if len(pieces_buffer):
+            pieces += sha1(pieces_buffer).digest()[:20]
+            pieces_buffer = bytearray()
+
+        info = {
+            'name': basename(src_path),
+            'pieces': pieces,
+            'piece length': size_piece,
+        }
+
+        if is_dir:
+            files = []
+
+            for _, length, path in target_files:
+                files.append({'length': length, 'path': path})
+
+            info['files'] = files
+
+        else:
+            info['length'] = target_files[0][1]
+
+        torrent = cls({'info': info})
+        torrent.created_by = get_app_version()
+        torrent.creation_date = datetime.utcnow()
+
+        return torrent
 
     @classmethod
     def from_string(cls, string):

@@ -1,6 +1,12 @@
 torrentool changelog
 ====================
 
+
+Unreleased
+----------
++ Implemented Torrent.create_from()
+
+
 v0.1.0
 ------
 + Basic functionality.
