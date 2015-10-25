@@ -2,7 +2,7 @@ torrentool changelog
 ====================
 
 
-Unreleased
+v0.2.0
 ----------
 + Implemented Torrent.create_from()
 + Implemented Torrent.private getter/setter
