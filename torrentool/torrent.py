@@ -59,6 +59,14 @@ class Torrent(object):
         """Magnet link using BTIH (BitTorrent Info Hash) URN."""
         return 'magnet:?xt=urn:btih:' + self.info_hash
 
+    @property
+    def name(self):
+        """Torrent's name"""
+        info = self._struct.get('info')
+        if not info:
+            return None
+        return info.get('name')
+
     def _get_announce_urls(self):
         urls = self._struct.get('announce-list')
 

@@ -93,6 +93,7 @@ class TorrentTests(unittest.TestCase):
         self.assertEqual(t.created_by, 'Transmission/2.84 (14307)')
         self.assertEqual(t.files, [('root.txt', 4)])
         self.assertEqual(t.total_size, 4)
+        self.assertEqual(t.name, u'root.txt')
         self.assertEqual(t.announce_urls, [['udp://123.123.123.123']])
         self.assertEqual(t.creation_date.isoformat(), '2015-10-21T17:40:05')
         self.assertIsNone(t.comment)
