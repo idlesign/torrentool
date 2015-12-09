@@ -19,6 +19,9 @@ class Torrent(object):
         dict_struct = dict_struct or {'info': {}}
         self._struct = dict_struct
 
+    def __str__(self):
+        return 'Torrent: %s' % self.name.encode('utf-8')
+
     @property
     def files(self):
         """Files in torrent. List of tuples (filepath, size)."""
