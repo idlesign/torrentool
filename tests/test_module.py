@@ -142,6 +142,9 @@ class TorrentTests(unittest.TestCase):
         self.assertEqual(t.announce_urls, [])
         self.assertEqual(t.files, [])
 
+        t.name = 'mytorrent'
+        self.assertEqual(t.name, 'mytorrent')
+
         t.comment = 'mycomment'
         self.assertEqual(t.comment, 'mycomment')
 
@@ -174,7 +177,6 @@ class TorrentTests(unittest.TestCase):
         t.private = False
         self.assertFalse(t.private)
 
-
     def test_from_string(self):
         torrstr = '4:spam'
         t = Torrent.from_string(torrstr)
@@ -190,6 +192,14 @@ class TorrentTests(unittest.TestCase):
 
         t2 = Torrent.from_file(fpath)
         self.assertEqual(t1._struct, t2._struct)
+
+    def test_str(self):
+        """ Tests Torrent.__str__ method """
+        t = Torrent.from_file(FPATH_TORRENT_SIMPLE)
+        self.assertEqual(str(t), 'Torrent: root.txt')
+
+        t.name = 'Мой торрент'
+        self.assertEqual(str(t), 'Torrent: Мой торрент')
 
 
 class BencodeDecodeTests(unittest.TestCase):
