@@ -19,6 +19,9 @@ class Torrent(object):
         dict_struct = dict_struct or {'info': {}}
         self._struct = dict_struct
 
+    def __str__(self):
+        return 'Torrent: %s' % self.name
+
     @property
     def files(self):
         """Files in torrent. List of tuples (filepath, size)."""
@@ -147,6 +150,15 @@ class Torrent(object):
     the client may obtain peer from other means, e.g. PEX peer exchange, dht.
 
     """
+
+    def _get_name(self):
+        return self._struct.get('info', {}).get('name', None)
+
+    def _set_name(self, val):
+        self._struct['info']['name'] = val
+
+    name = property(_get_name, _set_name)
+    """ Torrent's name """
 
     def to_file(self, filepath=None):
         """Writes Torrent object into file, either
