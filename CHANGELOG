@@ -1,9 +1,13 @@
 torrentool changelog
 ====================
 
+Unreleased
+----------
++ Added Torrent `name` attr and string representation.
+
 
 v0.2.0
-----------
+------
 + Implemented Torrent.create_from()
 + Implemented Torrent.private getter/setter
 * Fixed encoding error for non-ascii strings.
