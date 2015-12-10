@@ -20,7 +20,7 @@ class Torrent(object):
         self._struct = dict_struct
 
     def __str__(self):
-        return 'Torrent: %s' % self.name.encode('utf-8')
+        return 'Torrent: %s' % self.name
 
     @property
     def files(self):
@@ -61,14 +61,6 @@ class Torrent(object):
     def magnet_link(self):
         """Magnet link using BTIH (BitTorrent Info Hash) URN."""
         return 'magnet:?xt=urn:btih:' + self.info_hash
-
-    @property
-    def name(self):
-        """Torrent's name"""
-        info = self._struct.get('info')
-        if not info:
-            return None
-        return info.get('name')
 
     def _get_announce_urls(self):
         urls = self._struct.get('announce-list')
@@ -158,6 +150,15 @@ class Torrent(object):
     the client may obtain peer from other means, e.g. PEX peer exchange, dht.
 
     """
+
+    def _get_name(self):
+        return self._struct.get('info', {}).get('name', None)
+
+    def _set_name(self, val):
+        self._struct['info']['name'] = val
+
+    name = property(_get_name, _set_name)
+    """ Torrent's name """
 
     def to_file(self, filepath=None):
         """Writes Torrent object into file, either
