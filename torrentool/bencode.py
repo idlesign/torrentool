@@ -28,7 +28,7 @@ class Bencode(object):
         :param str val_encoding: Encoding used by strings in a given object.
         :rtype: bytes
         """
-        val_encoding='utf-8'
+        val_encoding = 'utf-8'
 
         def encode_str(v):
             try:
@@ -48,7 +48,7 @@ class Bencode(object):
             if isinstance(val, str_type):
                 result = encode_str(val)
 
-            elif isinstance(val, int):
+            elif isinstance(val, (int, long)):
                 result = encode(('i%se' % val), val_encoding)
 
             elif isinstance(val, (list, set, tuple)):
@@ -144,7 +144,7 @@ class Bencode(object):
 
             elif char.isdigit():  # String
                 str_len, char_sub_idx = parse_forward(':', encoded)
-                last_char_idx = char_sub_idx+str_len
+                last_char_idx = char_sub_idx + str_len
 
                 string = encoded[char_sub_idx:last_char_idx]
                 try:
