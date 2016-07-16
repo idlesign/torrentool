@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from os.path import join, isdir, getsize, normpath, basename
 from os import walk, sep
 from hashlib import sha1
@@ -6,7 +7,7 @@ from calendar import timegm
 from functools import reduce
 
 from .bencode import Bencode
-from .exceptions import TorrentError
+from .exceptions import TorrentError, TorrentFileFormatError
 from .utils import get_app_version
 
 
@@ -16,20 +17,54 @@ class Torrent(object):
     _filepath = None
 
     def __init__(self, dict_struct=None):
-        dict_struct = dict_struct or {'info': {}}
+        dict_struct = dict_struct or {b'info': {b'name': b''}}
+
+        if not isinstance(dict_struct, dict) or b'info' not in dict_struct:
+            raise TorrentFileFormatError('Metainfo file is malformed.')
+
+        encoding = dict_struct.get(b'encoding', b'UTF-8')
+
+        self._encoding = encoding.decode('ascii')
         self._struct = dict_struct
+        self._decode_strings()
 
     def __str__(self):
         return 'Torrent: %s' % self.name
+
+    def _decode_strings(self):
+        """Decodes string values contained within metainfo data using encoding
+        from the file itself.
+
+        """
+        encoding = self._encoding
+
+        def decode(obj):
+
+            if isinstance(obj, bytes):
+                try:
+                    obj = obj.decode(encoding)
+                except UnicodeDecodeError:
+                    # Leave it alone (e.g. `pieces` hashes).
+                    pass
+
+            elif isinstance(obj, OrderedDict):
+                new_obj = OrderedDict()
+                for k, v in obj.items():
+                    new_obj[decode(k)] = decode(v)
+                obj = new_obj
+
+            elif isinstance(obj, list):
+                obj = map(decode, obj)
+
+            return obj
+
+        self._struct = decode(self._struct)
 
     @property
     def files(self):
         """Files in torrent. List of tuples (filepath, size)."""
         files = []
         info = self._struct.get('info')
-
-        if not info:
-            return files
 
         if 'files' in info:
             base = info['name']
@@ -51,11 +86,7 @@ class Torrent(object):
     def info_hash(self):
         """Hash of torrent file info section. Also known as torrent hash."""
         info = self._struct.get('info')
-
-        if not info:
-            return None
-
-        return sha1(Bencode.encode(info)).hexdigest()
+        return sha1(Bencode.encode(info, self._encoding)).hexdigest()
 
     @property
     def magnet_link(self):
@@ -180,7 +211,7 @@ class Torrent(object):
         :param str encoding: Encoding used by strings in Torrent object.
         :rtype: bytearray
         """
-        return Bencode.encode(self._struct)
+        return Bencode.encode(self._struct, self._encoding)
 
     @classmethod
     def _get_target_files_info(cls, src_path):

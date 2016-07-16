@@ -21,27 +21,26 @@ class Bencode(object):
     """Exposes utilities for bencoding."""
 
     @classmethod
-    def encode(cls, value):
+    def encode(cls, value, encoding='UTF-8'):
         """Encodes a value into bencoded bytes.
 
         :param value: Python object to be encoded (str, int, list, dict).
-        :param str val_encoding: Encoding used by strings in a given object.
+        :param str encoding: Encoding used by strings in a given object.
         :rtype: bytes
         """
-        val_encoding='utf-8'
 
         def encode_str(v):
             try:
-                v_enc = encode(v, val_encoding)
+                v_enc = encode(v, encoding)
 
             except UnicodeDecodeError:
                 if PY3:
                     raise
                 else:
-                    # Suppose bytestring
+                    # Suppose a bytestring already.
                     v_enc = v
 
-            prefix = encode('%s:' % len(v_enc), val_encoding)
+            prefix = encode('%s:' % len(v_enc), encoding)
             return prefix + v_enc
 
         def encode_(val):
@@ -49,22 +48,22 @@ class Bencode(object):
                 result = encode_str(val)
 
             elif isinstance(val, int):
-                result = encode(('i%se' % val), val_encoding)
+                result = encode(('i%se' % val), encoding)
 
             elif isinstance(val, (list, set, tuple)):
-                result = encode('l', val_encoding)
+                result = encode('l', encoding)
                 for item in val:
                     result += encode_(item)
-                result += encode('e', val_encoding)
+                result += encode('e', encoding)
 
             elif isinstance(val, dict):
-                result = encode('d', val_encoding)
+                result = encode('d', encoding)
                 for k, v in val.items():
                     result += (encode_str(k) + encode_(v))
-                result += encode('e', val_encoding)
+                result += encode('e', encoding)
 
             elif isinstance(val, byte_types):
-                result = encode('%s:' % len(val), val_encoding)
+                result = encode('%s:' % len(val), encoding)
                 result += val
 
             else:
@@ -147,11 +146,6 @@ class Bencode(object):
                 last_char_idx = char_sub_idx+str_len
 
                 string = encoded[char_sub_idx:last_char_idx]
-                try:
-                    string = string.decode('utf-8')
-                except UnicodeDecodeError:
-                    # Considered bytestring (e.g. `pieces` hashes concatenation).
-                    pass
 
                 stack_items.append(string)
                 encoded = encoded[last_char_idx:]

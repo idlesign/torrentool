@@ -17,3 +17,7 @@ class BencodeEncodingError(BencodeError):
 
 class TorrentError(TorrentoolException):
     """Base exception for Torrent object related errors."""
+
+
+class TorrentFileFormatError(TorrentoolException):
+    """Exception for malformed Torrent files."""

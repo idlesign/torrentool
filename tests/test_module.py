@@ -74,16 +74,36 @@ def read_file(filepath):
 
 class TorrentTests(unittest.TestCase):
 
-    def test_create(self):
-        t = Torrent.create_from(join(CURRENT_DIR, 'torrtest', 'root.txt'))
-        t.private = True
-        self.assertEqual(t._struct['info'], STRUCT_TORRENT_SIMPLE['info'])
+    def test_encoding(self):
+        t = Torrent.from_file(join(CURRENT_DIR, 'enc_gbk.torrent'))
+        self.assertEqual(t.total_size, 3983016012)
 
-        # todo
-        # t = Torrent.create_from(join(CURRENT_DIR, 'torrtest'))
-        # expected = dict(STRUCT_TORRENT_WITH_DIR['info'])
-        # del expected['private']
-        # self.assertEqual(t._struct['info'], expected)
+    # def test_decode_complex(self):
+    #     decoded = Bencode.read_file(FPATH_TORRENT_WITH_DIR)
+    #     self.assertEqual(decoded, STRUCT_TORRENT_WITH_DIR)
+    #
+    #     decoded = Bencode.read_file(FPATH_TORRENT_SIMPLE)
+    #     self.assertEqual(decoded, STRUCT_TORRENT_SIMPLE)
+
+    # def test_encode_complex(self):
+    #     encoded = encode(STRUCT_TORRENT_SIMPLE)
+    #     from_file = read_file(FPATH_TORRENT_SIMPLE)
+    #     self.assertEqual(encoded, from_file)
+    #
+    #     encoded = encode(STRUCT_TORRENT_WITH_DIR)
+    #     from_file = read_file(FPATH_TORRENT_WITH_DIR)
+    #     self.assertEqual(encoded, from_file)
+
+#     def test_create(self):
+#         t = Torrent.create_from(join(CURRENT_DIR, 'torrtest', 'root.txt'))
+#         t.private = True
+#         self.assertEqual(t._struct['info'], STRUCT_TORRENT_SIMPLE['info'])
+#
+#         # todo
+#         # t = Torrent.create_from(join(CURRENT_DIR, 'torrtest'))
+#         # expected = dict(STRUCT_TORRENT_WITH_DIR['info'])
+#         # del expected['private']
+#         # self.assertEqual(t._struct['info'], expected)
 
     def test_getters_simple(self):
         t = Torrent.from_file(FPATH_TORRENT_SIMPLE)
@@ -183,7 +203,7 @@ class TorrentTests(unittest.TestCase):
         self.assertEqual(t._struct, 'spam')
 
     def test_to_file(self):
-        t0 = Torrent({})
+        t0 = Torrent({b'info': {}})
         self.assertRaises(TorrentError, t0.to_file)
 
         t1 = Torrent.from_file(FPATH_TORRENT_SIMPLE)
@@ -204,34 +224,26 @@ class TorrentTests(unittest.TestCase):
 
 class BencodeDecodeTests(unittest.TestCase):
 
-    def test_read_file_dir(self):
-        decoded = Bencode.read_file(FPATH_TORRENT_WITH_DIR)
-        self.assertEqual(decoded, STRUCT_TORRENT_WITH_DIR)
-
-    def test_read_file(self):
-        decoded = Bencode.read_file(FPATH_TORRENT_SIMPLE)
-        self.assertEqual(decoded, STRUCT_TORRENT_SIMPLE)
-
     def test_decode_simple(self):
-        self.assertEqual(decode('4:spam'), 'spam')
-        self.assertEqual(decode('0:'), '')
+        self.assertEqual(decode('4:spam'), b'spam')
+        self.assertEqual(decode('0:'), b'')
 
         self.assertEqual(decode('i3e'), 3)
         self.assertEqual(decode('i-3e'), -3)
         self.assertEqual(decode('i04e'), 4)
         self.assertEqual(decode('i0e'), 0)
 
-        self.assertEqual(decode('l4:spam4:eggse'), ['spam', 'eggs'])
+        self.assertEqual(decode('l4:spam4:eggse'), [b'spam', b'eggs'])
         self.assertEqual(decode('le'), [])
 
-        self.assertEqual(decode('d3:cow3:moo4:spam4:eggse'), OrderedDict([('cow', 'moo'), ('spam', 'eggs')]))
-        self.assertEqual(decode('d4:spaml1:a1:bee'), OrderedDict([('spam', ['a', 'b'])]))
+        self.assertEqual(decode('d3:cow3:moo4:spam4:eggse'), OrderedDict([(b'cow', b'moo'), (b'spam', b'eggs')]))
+        self.assertEqual(decode('d4:spaml1:a1:bee'), OrderedDict([(b'spam', [b'a', b'b'])]))
         self.assertEqual(
             decode('d9:publisher3:bob17:publisher-webpage15:www.example.com18:publisher.location4:homee'),
             OrderedDict([
-                ('publisher', 'bob'),
-                ('publisher-webpage', 'www.example.com'),
-                ('publisher.location', 'home'),
+                (b'publisher', b'bob'),
+                (b'publisher-webpage', b'www.example.com'),
+                (b'publisher.location', b'home'),
             ]))
         self.assertEqual(decode('de'), OrderedDict())
 
@@ -263,15 +275,6 @@ class BencodeEncodeTests(unittest.TestCase):
             enc('d9:publisher3:bob17:publisher-webpage15:www.example.com18:publisher.location4:homee')
         )
         self.assertEqual(encode(OrderedDict()), enc('de'))
-
-    def test_encode_complex(self):
-        encoded = encode(STRUCT_TORRENT_SIMPLE)
-        from_file = read_file(FPATH_TORRENT_SIMPLE)
-        self.assertEqual(encoded, from_file)
-
-        encoded = encode(STRUCT_TORRENT_WITH_DIR)
-        from_file = read_file(FPATH_TORRENT_WITH_DIR)
-        self.assertEqual(encoded, from_file)
 
     def test_errors(self):
         self.assertRaises(BencodeEncodingError, Bencode.encode, object())
