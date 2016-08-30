@@ -2,8 +2,8 @@ torrentool changelog
 ====================
 
 
-Unreleased
-----------
+v0.3.0
+------
 + Added CLI: torrent create (including open trackers and cachers support).
 + Added Torrent `name` attr and string representation.
 * IMPORTANT: Fixed dictionaries bencoding (i.e. wrong .info_hash).
