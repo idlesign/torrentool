@@ -10,6 +10,8 @@ recursive-include docs .py
 
 recursive-include bin *
 
+recursive-include torrentool/repo *
+
 recursive-include tests *
 
 recursive-exclude * __pycache__

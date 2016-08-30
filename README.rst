@@ -33,9 +33,31 @@ Works on Python 2.7+ and 3.3+.
 
 Includes:
 
+* Command line interface (requires ``click`` package to be installed)
 * Torrent utils (file creation, read and modification)
 * Bencoding utils (decoder, encoder)
 
+
+Using CLI
+~~~~~~~~~
+
+.. code-block:: bash
+
+    ; Make .torrent out of `video.mkv`
+    $ torrentool torrent create /home/my/files_here/video.mkv
+
+    ; Make .torrent out of entire `/home/my/files_here` dir,
+    ; and put some open trackers announce URLs into it, so it is ready to share.
+    $ torrentool torrent create /home/my/files_here --open_trackers
+
+
+Use command line ``--help`` switch to know more.
+
+.. note:: Some commands require ``requests`` package to be installed.
+
+
+From your Python code
+~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
