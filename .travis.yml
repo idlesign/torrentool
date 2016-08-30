@@ -9,11 +9,10 @@ python:
   - 2.7
 
 install:
-  - pip install -U coverage coveralls
+  - pip install pytest coverage coveralls
 
-
-script: coverage run --source=torrentool/ setup.py test
-
+script:
+  - coverage run --source=torrentool setup.py test
 
 after_success:
-  coveralls
+  - coveralls
