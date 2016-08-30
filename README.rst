@@ -14,14 +14,11 @@ https://github.com/idlesign/torrentool
 .. image:: https://img.shields.io/coveralls/idlesign/torrentool/master.svg
     :target: https://coveralls.io/r/idlesign/torrentool
 
-.. image:: https://landscape.io/github/idlesign/torrentool/master/landscape.svg?style=flat
-   :target: https://landscape.io/github/idlesign/torrentool/master
-
 .. image:: https://img.shields.io/travis/idlesign/torrentool/master.svg
     :target: https://travis-ci.org/idlesign/torrentool
 
-.. image:: https://img.shields.io/codeclimate/github/idlesign/torrentool.svg
-   :target: https://codeclimate.com/github/idlesign/torrentool
+.. image:: https://landscape.io/github/idlesign/torrentool/master/landscape.svg?style=flat
+   :target: https://landscape.io/github/idlesign/torrentool/master
 
 
 Description
