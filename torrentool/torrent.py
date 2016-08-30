@@ -1,5 +1,3 @@
-import re
-
 from os.path import join, isdir, getsize, normpath, basename
 from os import walk, sep
 from hashlib import sha1
@@ -236,7 +234,7 @@ class Torrent(object):
         def read(filepath):
             with open(filepath, 'rb') as f:
                 while True:
-                    chunk = f.read(size_piece-len(pieces_buffer))
+                    chunk = f.read(size_piece - len(pieces_buffer))
                     chunk_size = len(chunk)
                     if chunk_size == 0:
                         break
