@@ -47,8 +47,9 @@ Using CLI
     $ torrentool torrent create /home/my/files_here/video.mkv
 
     ; Make .torrent out of entire `/home/my/files_here` dir,
-    ; and put some open trackers announce URLs into it, so it is ready to share.
-    $ torrentool torrent create /home/my/files_here --open_trackers
+    ; and put some open trackers announce URLs into it,
+    ; and publish file on torrent caching service, so it is ready to share.
+    $ torrentool torrent create /home/my/files_here --open_trackers --cache
 
 
 Use command line ``--help`` switch to know more.

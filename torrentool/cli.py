@@ -23,7 +23,8 @@ def torrent():
 @click.option('--tracker', default=None, help='Tracker announce URL (multiple comma-separated values supported).')
 @click.option('--open_trackers', default=False, is_flag=True, help='Add open trackers announce URLs.')
 @click.option('--comment', default=None, help='Arbitrary comment.')
-def create(source, dest, tracker, open_trackers, comment):
+@click.option('--cache', default=False, is_flag=True, help='Upload file to torrent cache services.')
+def create(source, dest, tracker, open_trackers, comment, cache):
     """Create torrent file from a single file or a directory."""
 
     def check_path(fpath):
@@ -63,6 +64,36 @@ def create(source, dest, tracker, open_trackers, comment):
     my_torrent.to_file(dest)
 
     click.secho('Torrent file created: %s' % dest, fg='green')
+    click.secho('Torrent info hash: %s' % my_torrent.info_hash, fg='blue')
+
+    if cache:
+        upload_cache(dest)
+
+
+def upload_cache(fpath):
+    """Uploads .torrent file to a cache server."""
+    url_base = 'http://torrage.info'
+    url_upload = '%s/autoupload.php' % url_base
+    url_download = '%s/torrent.php?h=' % url_base
+    file_field = 'torrent'
+
+    click.secho('Uploading to %s torrent cache service ...')
+
+    try:
+        import requests
+
+        response = requests.post(url_upload, files={file_field: open(fpath, 'rb')})
+        response.raise_for_status()
+
+        info_cache = response.text
+        click.secho('Cached torrent URL: %s' % (url_download + info_cache), fg='yellow')
+
+    except (ImportError, requests.RequestException) as e:
+
+        if isinstance(e, ImportError):
+            click.secho('`requests` package is unavailable.', fg='red', err=True)
+
+        click.secho('Failed: %s' % e, fg='red', err=True)
 
 
 def get_open_trackers():
@@ -77,8 +108,8 @@ def get_open_trackers():
         import requests
 
         response = requests.get('%s/%s' % (ourl, ofile), timeout=3)
-
         response.raise_for_status()
+
         open_trackers = response.text.splitlines()
 
     except (ImportError, requests.RequestException) as e:
