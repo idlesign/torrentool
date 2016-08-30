@@ -1,11 +1,13 @@
 torrentool changelog
 ====================
 
+
 Unreleased
 ----------
 + Added CLI: torrent create (including open trackers and cachers support).
 + Added Torrent `name` attr and string representation.
 * IMPORTANT: Fixed dictionaries bencoding (i.e. wrong .info_hash).
+* Fixed filename encoding on Py2.
 
 
 v0.2.0
