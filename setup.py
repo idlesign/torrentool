@@ -1,3 +1,4 @@
+import sys
 import os
 from setuptools import setup
 from torrentool import VERSION
@@ -9,6 +10,8 @@ PATH_BIN = os.path.join(PATH_BASE, 'bin')
 SCRIPTS = None
 if os.path.exists(PATH_BIN):
     SCRIPTS = [os.path.join('bin', f) for f in os.listdir(PATH_BIN) if os.path.join(PATH_BIN, f)]
+
+PYTEST_RUNNER = ['pytest-runner'] if 'test' in sys.argv else []
 
 f = open(os.path.join(PATH_BASE, 'README.rst'))
 README = f.read()
@@ -31,6 +34,9 @@ setup(
     zip_safe=False,
 
     install_requires=[],
+    setup_requires=[] + PYTEST_RUNNER,
+    tests_require=['pytest'],
+
     scripts=SCRIPTS,
 
     test_suite='tests',
