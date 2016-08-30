@@ -79,11 +79,17 @@ class TorrentTests(unittest.TestCase):
         t.private = True
         self.assertEqual(t._struct['info'], STRUCT_TORRENT_SIMPLE['info'])
 
-        # todo
-        # t = Torrent.create_from(join(CURRENT_DIR, 'torrtest'))
-        # expected = dict(STRUCT_TORRENT_WITH_DIR['info'])
-        # del expected['private']
-        # self.assertEqual(t._struct['info'], expected)
+        # Note that STRUCT_TORRENT_WITH_DIR will probably
+        # differ from struct created during this test (due to different file ordering - Transmission-torrentool),
+        # so all we do is checking all files are present.
+        t = Torrent.create_from(join(CURRENT_DIR, 'torrtest'))
+        info = t._struct['info']
+        expected_info = STRUCT_TORRENT_WITH_DIR['info']
+
+        def get_fpaths(info):
+            return {'|'.join(f['path']) for f in info['files']}
+
+        self.assertEqual(get_fpaths(info), get_fpaths(expected_info))
 
     def test_getters_simple(self):
         t = Torrent.from_file(FPATH_TORRENT_SIMPLE)
