@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from operator import itemgetter
 from codecs import encode
 from sys import version_info
 
@@ -59,8 +60,11 @@ class Bencode(object):
 
             elif isinstance(val, dict):
                 result = encode('d', val_encoding)
-                for k, v in val.items():
+
+                # Dictionaries are expected to be sorted by key.
+                for k, v in OrderedDict(sorted(val.items(), key=itemgetter(0))).items():
                     result += (encode_str(k) + encode_(v))
+
                 result += encode('e', val_encoding)
 
             elif isinstance(val, byte_types):
@@ -83,7 +87,9 @@ class Bencode(object):
         :param bytes encoded:
         """
         def create_dict(items):
-            return OrderedDict(zip(*[iter(items)] * 2))
+            # Let's guarantee that dictionaries are sorted.
+            k_v_pair = zip(*[iter(items)] * 2)
+            return OrderedDict(sorted(k_v_pair, key=itemgetter(0)))
 
         def create_list(items):
             return list(items)

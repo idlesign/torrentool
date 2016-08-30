@@ -4,6 +4,7 @@ torrentool changelog
 Unreleased
 ----------
 + Added Torrent `name` attr and string representation.
+* IMPORTANT: Fixed dictionaries bencoding (i.e. wrong .info_hash).
 
 
 v0.2.0
