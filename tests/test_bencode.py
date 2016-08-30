@@ -57,7 +57,7 @@ def test_decode_simple():
     assert decode('de') == OrderedDict()
 
 
-def test_errors():
+def test_decode_errors():
     with pytest.raises(BencodeDecodingError):
         Bencode.read_string('u:some')
 
@@ -96,6 +96,6 @@ def test_encode_complex():
     assert encoded == from_file
 
 
-def test_errors():
+def test_encode_errors():
     with pytest.raises(BencodeEncodingError):
         Bencode.encode(object())
