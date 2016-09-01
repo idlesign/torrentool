@@ -1,8 +1,10 @@
 # -*- encoding: utf-8 -*-
+from os.path import normpath
 import pytest
 from uuid import uuid4
 from tempfile import mkdtemp
 from datetime import datetime
+import sys
 
 from torrentool.api import Torrent
 from torrentool.exceptions import TorrentError
@@ -11,7 +13,8 @@ from common import *
 
 
 def test_create():
-    t = Torrent.create_from(join(CURRENT_DIR, 'torrtest', 'root.txt'))
+    fp = join(CURRENT_DIR, 'torrtest', 'root.txt')
+    t = Torrent.create_from(fp)
     t.private = True
 
     assert t._struct['info'] == STRUCT_TORRENT_SIMPLE['info']
@@ -58,10 +61,10 @@ def test_getters_dir():
 
     assert t.created_by == 'Transmission/2.84 (14307)'
     assert t.files == [
-        ('torrtest/root.txt', 4),
-        ('torrtest/sub1/sub11.txt', 4),
-        (u'torrtest/sub1/sub2/кириллица.txt', 11),
-        ('torrtest/sub1/sub2/sub22.txt', 4)
+        (normpath('torrtest/root.txt'), 4),
+        (normpath('torrtest/sub1/sub11.txt'), 4),
+        (normpath(u'torrtest/sub1/sub2/кириллица.txt'), 11),
+        (normpath('torrtest/sub1/sub2/sub22.txt'), 4)
     ]
     assert t.total_size == 23
     assert t.announce_urls == [['http://track1.org/1/', 'http://track2.org/2/']]
@@ -142,7 +145,6 @@ def test_to_file():
 
     t2 = Torrent.from_file(fpath)
     assert t1._struct == t2._struct
-
 
 def test_str():
     """ Tests Torrent.__str__ method """
