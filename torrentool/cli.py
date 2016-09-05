@@ -18,7 +18,7 @@ def torrent():
 
 
 @torrent.command()
-@click.argument('source')
+@click.argument('source', type=click.Path(exists=True))
 @click.option('--dest', default=None, help='Destination path to put .torrent file into. Default: current directory.')
 @click.option('--tracker', default=None, help='Tracker announce URL (multiple comma-separated values supported).')
 @click.option('--open_trackers', default=False, is_flag=True, help='Add open trackers announce URLs.')
@@ -37,7 +37,7 @@ def create(source, dest, tracker, open_trackers, comment, cache):
     if not dest:
         dest = getcwd()
 
-    source = check_path(source)
+    #source = check_path(source)
     source_title = path.basename(source).replace('.', '_').replace(' ', '_')
 
     dest = check_path(dest)
