@@ -1,10 +1,13 @@
-from os.path import join, isdir, getsize, normpath, basename, getsize
-from os import walk, sep
-from hashlib import sha1
-from datetime import datetime
+from __future__ import division
+
 from calendar import timegm
+import datetime
 from functools import reduce
+from hashlib import sha1
 import math
+from os import walk, sep
+from os.path import join, isdir, getsize, normpath, basename
+import time
 
 from .bencode import Bencode
 from .exceptions import TorrentError
@@ -30,8 +33,7 @@ class Torrent(object):
                  announce_list=None,
                  comment=None,
                  creation_date=None,
-                 created_by=None,
-                 add_md5=False
+                 created_by=None
                  ):
         """
 
@@ -54,10 +56,8 @@ class Torrent(object):
         """
         self._struct = dict_struct or {'announce': '',
                                        'creation date': None,
-                                       'info': {
-                                            'piece length': '',
-                                            }
-                                        }
+                                       'info': {}
+                                       }
         self._filepath = filepath
         self._files = []
 
@@ -66,31 +66,38 @@ class Torrent(object):
         self._min_piece_size = min_piece_size
         self._max_piece_size = max_piece_size
         self._max_torrent_size = max_torrent_size
-        self._md5 = add_md5
 
         if httpseeds:
-            if not isinstance(httpseeds, list) and not all(isinstance(i, list) for i in httpseeds):
-                raise 'httpseeds needs to be a list of lists'
+            if not all(isinstance(i, list) for i in httpseeds):
+                raise ValueError('httpseeds needs to be a list of lists')
             else:
                 self._struct['httpseeds'] = httpseeds
 
         if webseeds:
-            if not isinstance(webseeds, list) and not all(isinstance(i, list) for i in webseeds):
-                raise 'webseeds needs to be a list of lists'
+            if not all(isinstance(i, list) for i in webseeds):
+                raise ValueError('webseeds needs to be a list of lists')
             else:
                 self._struct['url-list'] = webseeds
 
         if announce_list:
-            if not isinstance(announce_list, list) and not all(isinstance(i, list) for i in announce_list):
-                raise 'webseeds needs to be a list of lists'
+            if not all(isinstance(i, list) for i in announce_list):
+                raise ValueError('announce list needs to be a list of lists')
+            else:
+                self._struct['announce-list'] = announce_list
 
         if comment:
             self._struct['comment'] = comment
 
         if private:
-            if not private == 1 or not private == 0:
-                raise 'private must be 1 or 0'
-            self._struct['info']['private'] = private
+            if not isinstance(private, bool):
+                raise ValueError('private must be bool')
+            self._struct['info']['private'] = int(private)
+
+        if created_by:
+            self._struct['created by'] = created_by
+
+        if creation_date:
+            self.creation_date = creation_date
 
     def __str__(self):
         return 'Torrent: %s' % self.name
@@ -109,9 +116,6 @@ class Torrent(object):
         files = []
         info = self._struct.get('info')
 
-        if not info:
-            return files
-
         if 'files' in info:
             base = info['name']
 
@@ -119,21 +123,24 @@ class Torrent(object):
                 files.append((join(base, *f['path']), f['length']))
 
         else:
-            files.append((info['name'], info['length']))
+            if info.get('name') and info.get('length'):
+                files.append((info['name'], info['length']))
 
         return files
 
     @property
     def total_size(self):
         """Total size of all files in torrent."""
-        return reduce(lambda prev, curr: prev + curr[1], self.files, 0)
+        try:
+            return reduce(lambda prev, curr: prev + curr[1], self.files, 0)
+        except KeyError:
+            return 0
 
     @property
     def info_hash(self):
         """Hash of torrent file info section. Also known as torrent hash."""
         info = self._struct.get('info')
-
-        if info:
+        if 'name' in info:
             return sha1(Bencode.encode(info)).hexdigest()
 
     @property
@@ -142,19 +149,19 @@ class Torrent(object):
         return 'magnet:?xt=urn:btih:' + self.info_hash
 
     @property
-    def webseed(self):
-        return self._get_announce_urls
+    def webseeds(self):
+        return self._struct.get('url-list', [])
 
-    @webseed.setter
-    def webseed(self, val):
-        return self._set_announce_urls(val)
+    @webseeds.setter
+    def webseeds(self, val):
+        self._struct['url-list'] = val  # add valiation?
 
     @property
-    def httpseed(self):
-        return self._struct.get('httpseeds')
+    def httpseeds(self):
+        return self._struct.get('httpseeds', [])
 
-    @httpseed.setter
-    def httpseed(self, val):
+    @httpseeds.setter
+    def httpseeds(self, val):
         self._struct['httpseeds'] = val
 
     @property
@@ -172,7 +179,7 @@ class Torrent(object):
 
     @announce_urls.setter
     def announce_urls(self, val):
-        self._struct['announce'] = '' # fix me, isnt optional
+        self._struct['announce'] = ''
         self._struct['announce-list'] = []
 
         def set_single(val):
@@ -211,12 +218,15 @@ class Torrent(object):
         """Optional. The creation time of the torrent, in standard UNIX epoch format. UTC."""
         date = self._struct.get('creation date')
         if date is not None:
-            date = datetime.utcfromtimestamp(int(date))
+            date = datetime.datetime.utcfromtimestamp(int(date))
         return date
 
     @creation_date.setter
     def creation_date(self, val):
-        self._struct['creation date'] = timegm(val.timetuple())
+        if isinstance(val, datetime.date):
+            self._struct['creation date'] = timegm(val.timetuple())
+        else:
+            self._struct['creation date'] = val
 
     @property
     def created_by(self):
@@ -233,7 +243,7 @@ class Torrent(object):
         ONLY via the trackers explicitly described in the metainfo file. If False or is not present,
         the client may obtain peer from other means, e.g. PEX peer exchange, dht.
         """
-        return self._struct.get('info', {}).get('private', False)
+        return bool(self._struct.get('info', {}).get('private', False))
 
     @private.setter
     def private(self, val):
@@ -246,9 +256,17 @@ class Torrent(object):
             self._struct['info']['private'] = 1
 
     @property
+    def piece_size(self):
+        return self._struct.get('info', {}).get('piece length')
+
+    @property
     def name(self):
         """Torrent's name"""
         return self._struct.get('info', {}).get('name')
+
+    @property
+    def encoding(self):
+        return self._struct.get('info', {}).get('encoding')
 
     @name.setter
     def name(self, val):
@@ -260,12 +278,12 @@ class Torrent(object):
         :param filepath:
         """
         if filepath is None and self._filepath is None:
-            raise TorrentError('Unable to save torrent to file: no filepath supplied.')
+            raise TorrentError(
+                'Unable to save torrent to file: no filepath supplied.')
 
         if filepath is None:
             filepath = '%s.torrent' % self._filepath
 
-        print(filepath)
         with open(filepath, mode='wb') as f:
             f.write(self.to_string())
 
@@ -286,7 +304,8 @@ class Torrent(object):
 
         if is_dir:
             for base, _, files in walk(src_path):
-                target_files.extend([join(base, fname) for fname in sorted(files)])
+                target_files.extend([join(base, fname)
+                                     for fname in sorted(files)])
 
         else:
             target_files.append(src_path)
@@ -297,10 +316,9 @@ class Torrent(object):
             file_size = getsize(fpath)
             if not file_size:
                 continue
-            target_files_.append((fpath, file_size, normpath(fpath.replace(src_path, '')).strip(sep).split(sep)))
+            target_files_.append((fpath, file_size, normpath(
+                fpath.replace(src_path, '')).strip(sep).split(sep)))
             total_size += file_size
-
-        print(target_files_)
 
         return target_files_, total_size
 
@@ -313,8 +331,8 @@ class Torrent(object):
             # This only has to be close enough..
             t = self._max_torrent_size - len(self.to_string())
             # Set max to get the torrent as close to the limit as possible..
-            self._max_piece_number = (t / 20) - 1
-            self._min_piece_size = size / self._max_piece_number
+            self._max_piece_number = (t / 20) - 2
+            self._min_piece_size = int(math.ceil(size / self._max_piece_number))
 
             while (self._min_piece_size % block):
                 self._min_piece_size += 1
@@ -324,25 +342,22 @@ class Torrent(object):
         else:
             piece_size = 16384
 
-        print('p size is %s, %s' % (piece_size, (piece_size % block)))
-
         while True:
-            n_pieces = math.ceil(size / piece_size)
-            #print n_pieces
+            n_pieces = int(math.ceil(size / piece_size))
+            if n_pieces <= 1:
+                piece_size *= 2
+                break
             # Stop at optimal size or there isnt any enough pieces
-            if n_pieces >= self._min_piece_number and n_pieces <= self._max_piece_number:
-                print('piece size in the correct range', int(n_pieces))
+            elif n_pieces >= self._min_piece_number and n_pieces <= self._max_piece_number:
                 break
             elif self._min_piece_size and self._min_piece_size <= piece_size:
-                print('min piece size is %s lesser or equal to %s' % (self._min_piece_size, piece_size))
                 break
             # User is da boss^^
             elif self._max_piece_size and self._max_piece_size <= piece_size:
-                print('max piece size %s is less or equal to %s' % (self._max_piece_size, piece_size))
                 break
             else:
                 # Larger faster plx
-                if (size / (piece_size * 2) > 1024):
+                if (size / (piece_size * 2) > self._min_piece_number):
                     piece_size *= 2
                 else:
                     piece_size += block
@@ -352,8 +367,10 @@ class Torrent(object):
         if size % piece_size:
             num_pieces += 1
 
-        if piece_size > 16777216:
+        if piece_size >= 16777216:
             print('Warning: This torrent can be hard to seed')
+
+        assert piece_size % block == 0
 
         return piece_size, int(num_pieces)
 
@@ -372,12 +389,14 @@ class Torrent(object):
             'piece length': ''
         }
 
-        # lets add some more incase this was called before the torrent is created
+        # lets add some more incase this was called
+        # before the torrent is created
         if not self.creation_date:
-            info['creation date'] = str(datetime.utcnow())
-
+            self.creation_date = int(time.time())
         if not self.created_by:
-            info['created by'] = get_app_version()
+            self.created_by = get_app_version()
+        if self.private:
+            info['private'] = 1
 
         if is_dir:
             files = []
@@ -390,7 +409,7 @@ class Torrent(object):
         else:
             info['length'] = target_files[0][1]
 
-        self._struct.update(info)
+        self._struct['info'].update(info)
         size_piece, _ = self._calc_size(size_data)
 
         def read(filepath):
@@ -417,9 +436,8 @@ class Torrent(object):
             pieces += sha1(pieces_buffer).digest()[:20]
             pieces_buffer = bytearray()
 
-        self._struct['pieces'] = bytes(pieces)
-        self._struct['piece length'] = size_piece
-
+        self._struct['info']['pieces'] = bytes(pieces)
+        self._struct['info']['piece length'] = size_piece
         return self
 
     def from_string(self, string):
@@ -431,7 +449,6 @@ class Torrent(object):
         self._struct = Bencode.read_string(string)
         return self
 
-
     def from_file(self, filepath):
         """Alternative constructor to get Torrent object from file.
 
@@ -441,4 +458,3 @@ class Torrent(object):
         self._struct = Bencode.read_file(filepath)
         self._filepath = filepath
         return self
-

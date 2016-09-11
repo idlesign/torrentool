@@ -10,39 +10,36 @@ FPATH_TORRENT_SIMPLE = join(CURRENT_DIR, 'test_file.torrent')
 
 STRUCT_TORRENT_WITH_DIR = (
     OrderedDict([
-        ('announce', 'http://track1.org/1/'),
-        ('announce-list', [
-            ['http://track1.org/1/', 'http://track2.org/2/']
-        ]),
+        ('announce', 'udp://123.123.123.123'),
         ('comment', u'примечание'),
-        ('created by', 'Transmission/2.84 (14307)'),
-        ('creation date', 1445766124),
-        ('encoding', 'UTF-8'),
+        ('created by', 'torrentool/0.3.0'),
+        ('creation date', 1473889851),
+        #('encoding', 'UTF-8'),
         ('info', OrderedDict([
             ('files', [
-                OrderedDict([('length', 4), ('path', ['root.txt'])]),
-                OrderedDict([('length', 4), ('path', ['sub1', 'sub11.txt'])]),
-                OrderedDict([('length', 11), ('path', ['sub1', 'sub2', u'кириллица.txt'])]),
-                OrderedDict([('length', 4), ('path', ['sub1', 'sub2', 'sub22.txt'])])
+                OrderedDict([('length', 3), ('path', ['root.txt'])]),
+                OrderedDict([('length', 5), ('path', ['sub1', 'sub11.txt'])]),
+                OrderedDict([('length', 5), ('path', ['sub1', 'sub2', 'sub22.txt'])]),
+                OrderedDict([('length', 11), ('path', ['sub1', 'sub2', u'\u043a\u0438\u0440\u0438\u043b\u043b\u0438\u0446\u0430.txt'])]),
+
             ]),
             ('name', 'torrtest'),
             ('piece length', 32768),
-            ('pieces', b'?\x9ew\xc1A\x84\x8d\x8b\xb7\x91\x19\xe3(\x1e\x1ex\x1e\xde\xa8\xdc'),
-            ('private', 0)]))
+            ('pieces', b'\x00g\x9a\xf8$\x8eDq\r\x1c\x1f\xc0\x801\x93*:f&G'),
+            ('private', 1)]))
     ])
 )
 
 STRUCT_TORRENT_SIMPLE = (
     OrderedDict([
         ('announce', 'udp://123.123.123.123'),
-        ('created by', 'Transmission/2.84 (14307)'),
-        ('creation date', 1445449205),
-        ('encoding', 'UTF-8'),
+        ('created by', 'torrentool/0.3.0'),
+        ('creation date', 1473886180),
         ('info', OrderedDict([
-            ('length', 4),
+            ('length', 3),
             ('name', 'root.txt'),
             ('piece length', 32768),
-            ('pieces', b'\xa8\xfd\xc2\x05\xa9\xf1\x9c\xc1\xc7Pz`\xc4\xf0\x1b\x13\xd1\x1d\x7f\xd0'),
+            ('pieces', b'@\xbd\x00\x15c\x08_\xc3Qe2\x9e\xa1\xff\\^\xcb\xdb\xbe\xef'),
             ('private', 1)])
          )
     ])

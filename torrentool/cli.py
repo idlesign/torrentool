@@ -18,15 +18,16 @@ def torrent():
 
 
 @torrent.command()
-@click.argument('source', type=click.Path(exists=True))
-@click.option('--dest', default=None, help='Destination path to put .torrent file into. Default: current directory.')
+@click.argument('source')
+@click.option('--dest', help='Destination path to put .torrent file into. Default: current directory.')
 @click.option('--tracker', default=None, help='Tracker announce URL (multiple comma-separated values supported).')
 @click.option('--open_trackers', default=False, is_flag=True, help='Add open trackers announce URLs.')
 @click.option('--comment', default=None, help='Arbitrary comment.')
 @click.option('--cache', default=False, is_flag=True, help='Upload file to torrent cache services.')
-def create(source, dest, tracker, open_trackers, comment, cache):
+@click.option('--size', help='Limit the torrent file to this size')
+def create(source, dest, tracker, open_trackers, comment, cache, size):
     """Create torrent file from a single file or a directory."""
-
+    print('Running create')
     def check_path(fpath):
         fpath = path.abspath(fpath)
         if not path.exists(fpath):
@@ -37,7 +38,7 @@ def create(source, dest, tracker, open_trackers, comment, cache):
     if not dest:
         dest = getcwd()
 
-    #source = check_path(source)
+    source = check_path(source)
     source_title = path.basename(source).replace('.', '_').replace(' ', '_')
 
     dest = check_path(dest)
@@ -45,7 +46,7 @@ def create(source, dest, tracker, open_trackers, comment, cache):
 
     click.secho('Creating torrent from %s ...' % source)
 
-    my_torrent = Torrent.create_from(source)
+    my_torrent = Torrent(torrentsize=size).create_from(source)
 
     if comment:
         my_torrent.comment = comment

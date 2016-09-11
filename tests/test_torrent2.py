@@ -1,35 +1,101 @@
-import sys
+# -*- encoding: utf-8 -*-
+from __future__ import division
 import os
-import pytest
+import sys
 
 # A user shouldnt have to install a package to run tests
 sys.path.insert(0, os.path.abspath('..'))
 
-
+import datetime
+from collections import OrderedDict
+from tempfile import mkdtemp
 from uuid import uuid4
-from tempfile import mkdtemp, NamedTemporaryFile
-from datetime import datetime
-import math
+
+import pytest
 
 from torrentool.torrent2 import Torrent
 from torrentool.exceptions import TorrentError
+from common import *
 
 
-from common import CURRENT_DIR, FPATH_TORRENT_SIMPLE, FPATH_TORRENT_WITH_DIR
-from collections import OrderedDict
+def test_create():
+    t = Torrent().create_from(os.path.join(CURRENT_DIR, 'torrtest', 'root.txt'))
+    t.private = True
+    t.announce_urls = 'udp://123.123.123.123'
+    assert t._struct['info'] == STRUCT_TORRENT_SIMPLE['info']
 
-# remove me
-from pprint import pprint as pp
+    # Note that STRUCT_TORRENT_WITH_DIR will probably
+    # differ from struct created during this test (due to different file ordering - Transmission-torrentool),
+    # so all we do is checking all files are present.
+    t = Torrent().create_from(join(CURRENT_DIR, 'torrtest'))
+    info = t._struct['info']
+    expected_info = STRUCT_TORRENT_WITH_DIR['info']
+
+    def get_fpaths(info):
+        return {'|'.join(f['path']) for f in info['files']}
+
+    assert get_fpaths(info) == get_fpaths(expected_info)
 
 
-def convert_size(size):
-    if (size == 0):
-        return '0B'
-    size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-    i = int(math.floor(math.log(size, 1024)))
-    p = math.pow(1024, i)
-    s = round(size / p, 2)
-    return '%s %s' % (s, size_name[i])
+def test_getters_simple():
+    t = Torrent().from_file(FPATH_TORRENT_SIMPLE)
+
+    assert t._filepath == FPATH_TORRENT_SIMPLE
+
+    assert t.created_by == 'torrentool/0.3.0'
+    assert t.files == [('root.txt', 3)]
+    assert t.total_size == 3
+    assert t.name == u'root.txt'
+    assert t.announce_urls == [['udp://123.123.123.123']]
+    assert t.creation_date.isoformat() == '2016-09-14T20:49:40'
+    assert t.comment is None
+
+    hash_expected = '13548e73f889bb6108dd61550c722693184093a5'
+    assert t.info_hash == hash_expected
+
+    magnet = t.magnet_link
+    assert hash_expected in magnet
+    assert 'btih' in magnet
+    assert 'magnet:' in magnet
+
+
+def test_getters_dir():
+    t = Torrent().from_file(FPATH_TORRENT_WITH_DIR)
+
+    assert t._filepath == FPATH_TORRENT_WITH_DIR
+
+    assert t.created_by == 'torrentool/0.3.0'
+
+    assert t.files == [
+        (os.path.normpath('torrtest/root.txt'), 3),
+        (os.path.normpath('torrtest/sub1/sub11.txt'), 5),
+        (os.path.normpath('torrtest/sub1/sub2/sub22.txt'), 5),
+        (os.path.normpath(u'torrtest/sub1/sub2/кириллица.txt'), 11)
+
+    ]
+
+    assert t.total_size == 24
+    assert t.announce_urls == [[u'udp://123.123.123.123']]
+    assert t.creation_date.isoformat() == '2016-09-14T21:50:51'
+    assert t.comment == u'примечание'
+
+    hash_expected = '7cc3a898e1f6c7c4342f023eafe77888ce979906'
+    assert t.info_hash == hash_expected
+
+    magnet = t.magnet_link
+    assert hash_expected in magnet
+    assert 'btih' in magnet
+    assert 'magnet:' in magnet
+
+
+def test_str():
+    """ Tests Torrent.__str__ method """
+    t = Torrent().from_file(FPATH_TORRENT_SIMPLE)
+    assert str(t) == 'Torrent: root.txt'
+
+    t.name = 'Мой торрент'
+    assert str(t) == 'Torrent: Мой торрент'
+
 
 def test_setters():
     t = Torrent()
@@ -43,8 +109,8 @@ def test_setters():
     assert t.files == []
     # new
     assert t.max_torrent_size is None
-    assert t.webseed == []
-    assert t.httpseed == []
+    assert t.webseeds == []
+    assert t.httpseeds == []
     assert t.private is False
     assert t.name is None
 
@@ -57,7 +123,7 @@ def test_setters():
     t.created_by = 'some/1.0'
     assert t.created_by == 'some/1.0'
 
-    now = datetime.now()
+    now = datetime.datetime.now()
     t.creation_date = now
     assert t.creation_date == now.replace(microsecond=0)
 
@@ -75,84 +141,98 @@ def test_setters():
     assert t._struct['announce'] == 'some5'
     assert 'announce-list' not in t._struct
 
-    assert not t.private
     t.private = False
-    assert not t.private
+    assert t.private is False
     t.private = True
-    assert t.private
+    assert t.private == 1
     t.private = False
-    assert not t.private
-
-def test_instance():
-    t = Torrent(max_torrent_size=100)
-
-    #print t
-    # make a torrent
-    s = os.path.join(CURRENT_DIR, 'torrtest', 'root')
+    assert t.private is False
 
 
-    x = t.from_file(FPATH_TORRENT_SIMPLE)
-    #print pp(x._struct)
+def test_stuff():
+    with pytest.raises(ValueError):
+        t = Torrent(webseeds='url')
 
-    struct = OrderedDict([(u'announce', u'udp://123.123.123.123'),
-                        (u'created by', u'Transmission/2.84 (14307)'),
-                        (u'creation date', 1445449205),
-                        (u'encoding', u'UTF-8'),
-                        (u'info', OrderedDict([(u'length', 4),
-                                                (u'name', u'root.txt'),
-                                                (u'piece length', 32768),
-                                                (u'pieces', '\xa8\xfd\xc2\x05\xa9\xf1\x9c\xc1\xc7Pz`\xc4\xf0\x1b\x13\xd1\x1d\x7f\xd0'),
-                                                (u'private', 1)]))])
+    with pytest.raises(ValueError):
+        t = Torrent(httpseeds='url')
 
-    new_torrent = t.to_file('test222.torrent')
+    with pytest.raises(ValueError):
+        t = Torrent(private=1)
 
+    with pytest.raises(ValueError):
+        t = Torrent(announce_list=['url'])
+
+    # Options
+    min_piece_number = 1337
+    max_piece_number = 9999
+    min_piece_size = 1
+    max_piece_size = 16777216
+    max_torrent_size = 200
+    # end options
+
+    webseeds = [['ws1']]
+    httpseeds = [['hs1'], ['hs2'], ['hs3']]
+    private = True
+    announce_list = [['a1'], ['a2']]
+    comment = 'Hello'
+    creation_date = datetime.datetime(2016, 1, 1)
+    created_by = 'abc'
+
+    t = Torrent(min_piece_number=min_piece_number,
+                max_piece_number=max_piece_number,
+                min_piece_size=min_piece_size,
+                max_piece_size=max_piece_size,
+                max_torrent_size=max_torrent_size,
+                webseeds=webseeds,
+                httpseeds=httpseeds,
+                private=private,
+                announce_list=announce_list,
+                comment=comment,
+                creation_date=creation_date,
+                created_by=created_by)
+
+    assert t.webseeds == webseeds
+    assert t.httpseeds == httpseeds
+    assert t.comment == comment
+    assert t.announce_urls == announce_list
+    assert t.created_by == created_by
+    assert str(t.creation_date) == '2016-01-01 00:00:00'
+    assert t._struct['creation date'] == 1451606400
+    assert t.private is True
+    assert t.comment == comment
+    assert t.created_by == created_by
+
+
+def test_set_torrent_size():
 
     fpath = os.path.join(mkdtemp(), str(uuid4()))
-    new_torrent_file = os.path.join(os.getcwd(), 'dipshit.torrent')
+    new_torrent_file = os.path.join(mkdtemp(), 'test.torrent')
 
-
-    filesizes = [
-                # filesize, torrent size
-                 (1337, 3),
-                 (5120, 50),
-                 (11331, 100),
-                 (11331, 250),
-                 (11331, 30),
-                ]
+    # filesize in mb, torrent size kb
+    filesizes = [(1337, 1),
+                 (1337, None)]  # Torrent size disabled
 
     try:
         for fs in filesizes:
-
             f = open(fpath, 'w+')
             f.seek((fs[0] * 1024 * 1024) - 1)
             f.write('\0')
             f.close()
 
             tt = Torrent(max_torrent_size=fs[1])
-            print(convert_size(os.path.getsize(fpath)))
-
             tt.create_from(fpath)
-
             tt.to_file(new_torrent_file)
-            print 'p', convert_size(tt._struct['piece length'])
-            print ('Torrent file is %s size' % convert_size(os.path.getsize(new_torrent_file)))
-            assert os.path.getsize(new_torrent_file) / 1024 < fs[1]
+
+            if fs[1]:
+                assert os.path.getsize(new_torrent_file) / 1024 < fs[1]
+            else:
+                assert os.path.getsize(new_torrent_file) == 26925
 
     except:
         raise
+
     finally:
         os.remove(fpath)
         os.remove(new_torrent_file)
         assert not os.path.isfile(fpath)
         assert not os.path.isfile(new_torrent_file)
-
-
-
-
-
-
-
-if __name__ == '__main__':
-    test_instance()
-    pass
-    #test_setters()
