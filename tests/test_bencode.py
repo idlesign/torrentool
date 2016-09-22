@@ -1,9 +1,13 @@
 # -*- encoding: utf-8 -*-
 import sys
+import os
 import pytest
+
+sys.path.insert(0, os.path.abspath('..'))
 
 from torrentool.api import Bencode
 from torrentool.exceptions import BencodeDecodingError, BencodeEncodingError
+
 
 from common import *
 
@@ -91,11 +95,18 @@ def test_encode_complex():
     from_file = read_file(FPATH_TORRENT_SIMPLE)
     assert encoded == from_file
 
-    encoded = encode(STRUCT_TORRENT_WITH_DIR)
-    from_file = read_file(FPATH_TORRENT_WITH_DIR)
-    assert encoded == from_file
-
 
 def test_encode_errors():
     with pytest.raises(BencodeEncodingError):
         Bencode.encode(object())
+
+if __name__ == '__main__':
+    pass
+    #test_encode_errors()
+    #test_encode_complex()
+    #test_encode_simple()
+    #test_decode_errors()
+    #test_decode_simple()
+    #test_read_file_dir()
+    #test_read_file()
+    #test_read_file_dir()
