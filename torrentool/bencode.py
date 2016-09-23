@@ -12,10 +12,12 @@ if PY3:
     str_type = str
     byte_types = (bytes, bytearray)
     chr_ = chr
+    int_types = int
 else:
     str_type = basestring
     byte_types = bytes
     chr_ = lambda ch: ch
+    int_types = (int, long)
 
 
 class Bencode(object):
@@ -49,7 +51,7 @@ class Bencode(object):
             if isinstance(val, str_type):
                 result = encode_str(val)
 
-            elif isinstance(val, int):
+            elif isinstance(val, int_types):
                 result = encode(('i%se' % val), val_encoding)
 
             elif isinstance(val, (list, set, tuple)):
@@ -72,7 +74,7 @@ class Bencode(object):
                 result += val
 
             else:
-                raise BencodeEncodingError('Unable to encode `%s` type.' % type(val))
+                raise BencodeEncodingError('Unable to encode `%s` %s' % (type(val), val))
 
             return result
 

@@ -99,3 +99,11 @@ def test_encode_complex():
 def test_encode_errors():
     with pytest.raises(BencodeEncodingError):
         Bencode.encode(object())
+
+
+@pytest.mark.xfail(sys.version_info >= (3, 0),
+                   reason="py3 has no long")
+def test_encode_error_long():
+    # os.path.getsize() can be longs on py2
+    a_long = long(741634835)
+    encoded_long = Bencode.encode(a_long)
