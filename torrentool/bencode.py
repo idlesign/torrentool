@@ -8,12 +8,12 @@ from .exceptions import BencodeDecodingError, BencodeEncodingError
 
 PY3 = version_info >= (3, 0)
 
-if PY3:
+if PY3:  # pragma: no cover
     str_type = str
     byte_types = (bytes, bytearray)
     chr_ = chr
     int_types = int
-else:
+else:  # pragma: no cover
     str_type = basestring
     byte_types = bytes
     chr_ = lambda ch: ch

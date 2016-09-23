@@ -64,6 +64,7 @@ def test_decode_errors():
 
 def test_encode_simple():
     assert encode('spam') == enc('4:spam')
+    assert encode(b'spam') == enc('4:spam')
     assert encode('') == enc('0:')
 
     assert encode(3) == enc('i3e')
@@ -99,6 +100,10 @@ def test_encode_complex():
 def test_encode_errors():
     with pytest.raises(BencodeEncodingError):
         Bencode.encode(object())
+
+    if sys.version_info >= (3, 0):
+        with pytest.raises(UnicodeDecodeError):
+            encode(str(b'\xff', 'utf8'))
 
 
 @pytest.mark.xfail(sys.version_info >= (3, 0),
