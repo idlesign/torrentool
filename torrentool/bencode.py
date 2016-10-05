@@ -38,7 +38,7 @@ class Bencode(object):
                 v_enc = encode(v, val_encoding)
 
             except UnicodeDecodeError:
-                if PY3:
+                if PY3:  # pragma: no cover
                     raise
                 else:
                     # Suppose bytestring
