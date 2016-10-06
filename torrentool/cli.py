@@ -1,6 +1,5 @@
 import click
 from os import path, getcwd
-from sys import exit
 
 from torrentool import VERSION
 from torrentool.api import Torrent
@@ -18,34 +17,23 @@ def torrent():
 
 
 @torrent.command()
-@click.argument('source')
-@click.option('--dest', default=None, help='Destination path to put .torrent file into. Default: current directory.')
+@click.argument('source', type=click.Path(exists=True))
+@click.option('--dest', default=getcwd(), type=click.Path(), help='Destination path to put .torrent file into. Default: current directory.')
 @click.option('--tracker', default=None, help='Tracker announce URL (multiple comma-separated values supported).')
 @click.option('--open_trackers', default=False, is_flag=True, help='Add open trackers announce URLs.')
 @click.option('--comment', default=None, help='Arbitrary comment.')
 @click.option('--cache', default=False, is_flag=True, help='Upload file to torrent cache services.')
-def create(source, dest, tracker, open_trackers, comment, cache):
+@click.option('--size', default=None, type=int, help='Limit the torrent filesize to this size')
+def create(source, dest, tracker, open_trackers, comment, cache, size):
     """Create torrent file from a single file or a directory."""
 
-    def check_path(fpath):
-        fpath = path.abspath(fpath)
-        if not path.exists(fpath):
-            click.secho('Path is not found: %s' % fpath, fg='red', err=True)
-            exit(1)
-        return fpath
-
-    if not dest:
-        dest = getcwd()
-
-    source = check_path(source)
     source_title = path.basename(source).replace('.', '_').replace(' ', '_')
 
-    dest = check_path(dest)
     dest = '%s.torrent' % path.join(dest, source_title)
 
     click.secho('Creating torrent from %s ...' % source)
 
-    my_torrent = Torrent.create_from(source)
+    my_torrent = Torrent().create_from(source, max_torrent_size=size)
 
     if comment:
         my_torrent.comment = comment
@@ -65,6 +53,9 @@ def create(source, dest, tracker, open_trackers, comment, cache):
 
     click.secho('Torrent file created: %s' % dest, fg='green')
     click.secho('Torrent info hash: %s' % my_torrent.info_hash, fg='blue')
+
+    if my_torrent.piece_size > 16777216:
+        click.secho('This torrent can be hard to seed', fg='red')
 
     if cache:
         upload_cache(dest)

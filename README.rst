@@ -69,7 +69,7 @@ From your Python code
     my_torrent.to_file()  # Save changes.
 
     # Or we can create a new torrent from a directory.
-    new_torrent = Torrent.create_from('/home/idle/my_stuff/')  # or it could have been a single file
+    new_torrent = Torrent().create_from('/home/idle/my_stuff/')  # or it could have been a single file
     new_torrent.announce_urls = 'udp://tracker.openbittorrent.com:80'
     new_torrent.to_file('/home/idle/another.torrent')
 

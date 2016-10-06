@@ -7,9 +7,11 @@ python:
   - 3.4
   - 3.3
   - 2.7
+  - pypy
+  - pypy3
 
 install:
-  - pip install pytest coverage coveralls
+  - pip install pytest coverage coveralls mock
 
 script:
   - coverage run --source=torrentool setup.py test
