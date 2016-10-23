@@ -178,14 +178,18 @@ class Bencode(object):
 
     @classmethod
     def read_string(cls, string):
-        """Decodes a given bencoded string.
+        """Decodes a given bencoded string or bytestring.
 
         Returns decoded structure(s).
 
         :param str string:
         :rtype: list
         """
-        string = string.encode()
+        try:
+            string = string.encode()  # Simple string.
+        except UnicodeDecodeError:
+            pass  # Possibly binary data (as in Torrent file).
+
         return cls.decode(string)
 
     @classmethod
