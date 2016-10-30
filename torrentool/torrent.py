@@ -248,10 +248,15 @@ class Torrent(object):
         result = 'magnet:?xt=urn:btih:' + self.info_hash
 
         def add_tr():
+            urls = self.announce_urls
+            if not urls:
+                return
+
             trackers = []
-            for urls in self.announce_urls:
-                for url in urls:
-                    trackers.append(('tr', url))
+
+            urls = urls[0]  # Only primary announcers are enough.
+            for url in urls:
+                trackers.append(('tr', url))
 
             if trackers:
                 return urlencode(trackers)
