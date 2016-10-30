@@ -5,6 +5,7 @@ from .exceptions import RemoteUploadError
 
 
 OPEN_TRACKERS_FILENAE = 'open_trackers.ini'
+REMOTE_TIMEOUT = 4
 
 
 def get_app_version():
@@ -48,7 +49,7 @@ def upload_to_cache_server(fpath):
     try:
         import requests
 
-        response = requests.post(url_upload, files={file_field: open(fpath, 'rb')})
+        response = requests.post(url_upload, files={file_field: open(fpath, 'rb')}, timeout=REMOTE_TIMEOUT)
         response.raise_for_status()
 
         info_cache = response.text
@@ -67,7 +68,7 @@ def get_open_trackers_from_remote():
     try:
         import requests
 
-        response = requests.get(url, timeout=3)
+        response = requests.get(url, timeout=REMOTE_TIMEOUT)
         response.raise_for_status()
 
         open_trackers = response.text.splitlines()
