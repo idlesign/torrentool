@@ -13,3 +13,11 @@ class ResponseMock(object):
 
 class RequestException(Exception):
     pass
+
+
+def get():
+    pass
+
+
+def post():
+    pass
