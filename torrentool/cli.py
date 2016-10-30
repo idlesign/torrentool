@@ -1,6 +1,5 @@
 import click
 from os import path, getcwd
-from sys import exit
 
 from torrentool import VERSION
 from torrentool.api import Torrent
@@ -18,8 +17,8 @@ def torrent():
 
 
 @torrent.command()
-@click.argument('source')
-@click.option('--dest', default=None, help='Destination path to put .torrent file into. Default: current directory.')
+@click.argument('source', type=click.Path(exists=True, writable=False))
+@click.option('--dest', getcwd(), type=click.Path(file_okay=False), help='Destination path to put .torrent file into. Default: current directory.')
 @click.option('--tracker', default=None, help='Tracker announce URL (multiple comma-separated values supported).')
 @click.option('--open_trackers', default=False, is_flag=True, help='Add open trackers announce URLs.')
 @click.option('--comment', default=None, help='Arbitrary comment.')
@@ -27,20 +26,7 @@ def torrent():
 def create(source, dest, tracker, open_trackers, comment, cache):
     """Create torrent file from a single file or a directory."""
 
-    def check_path(fpath):
-        fpath = path.abspath(fpath)
-        if not path.exists(fpath):
-            click.secho('Path is not found: %s' % fpath, fg='red', err=True)
-            exit(1)
-        return fpath
-
-    if not dest:
-        dest = getcwd()
-
-    source = check_path(source)
     source_title = path.basename(source).replace('.', '_').replace(' ', '_')
-
-    dest = check_path(dest)
     dest = '%s.torrent' % path.join(dest, source_title)
 
     click.secho('Creating torrent from %s ...' % source)
