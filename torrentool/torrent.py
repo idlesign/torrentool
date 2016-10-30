@@ -77,7 +77,7 @@ class Torrent(object):
                 del self._struct[key]
                 return
             except KeyError:
-                pass
+                return
 
         if not isinstance(val, _ITERABLE_TYPES):
             val = [val]

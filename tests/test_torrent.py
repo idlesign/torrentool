@@ -136,6 +136,9 @@ def test_setters_webseed():
     t = Torrent()
     t.name = 'mytorrent'
 
+    t.webseeds = None
+    assert t.webseeds == []
+
     t.webseeds = 'http://host.some/file'
     assert t.webseeds == ['http://host.some/file']
     assert (
@@ -155,6 +158,9 @@ def test_setters_webseed():
 def test_setters_httpseed():
     t = Torrent()
     t.name = 'mytorrent'
+
+    t.httpseeds = None
+    assert t.httpseeds == []
 
     t.httpseeds = 'http://host.some/file'
     assert t.httpseeds == ['http://host.some/file']

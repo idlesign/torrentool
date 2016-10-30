@@ -1,10 +1,10 @@
 import math
 from os import path
 
-from .exceptions import RemoteUploadError
+from .exceptions import RemoteUploadError, RemoteDownloadError
 
 
-OPEN_TRACKERS_FILENAE = 'open_trackers.ini'
+OPEN_TRACKERS_FILENAME = 'open_trackers.ini'
 REMOTE_TIMEOUT = 4
 
 
@@ -56,14 +56,16 @@ def upload_to_cache_server(fpath):
         return url_download + info_cache
 
     except (ImportError, requests.RequestException) as e:
-        RemoteUploadError('Unable to upload to %s: %s' % (url_upload, e))  # Trace is lost. `raise from` to consider.
+
+        # Now trace is lost. `raise from` to consider.
+        raise RemoteUploadError('Unable to upload to %s: %s' % (url_upload, e))
 
 
 def get_open_trackers_from_remote():
     """Returns open trackers announce URLs list from remote repo."""
 
     url_base = 'https://raw.githubusercontent.com/idlesign/torrentool/master/torrentool/repo'
-    url = '%s/%s' % (url_base, OPEN_TRACKERS_FILENAE)
+    url = '%s/%s' % (url_base, OPEN_TRACKERS_FILENAME)
 
     try:
         import requests
@@ -74,14 +76,16 @@ def get_open_trackers_from_remote():
         open_trackers = response.text.splitlines()
 
     except (ImportError, requests.RequestException) as e:
-        RemoteUploadError('Unable to download from %s: %s' % (url, e))  # Trace is lost. `raise from` to consider.
+
+        # Now trace is lost. `raise from` to consider.
+        raise RemoteDownloadError('Unable to download from %s: %s' % (url, e))
 
     return open_trackers
 
 
 def get_open_trackers_from_local():
     """Returns open trackers announce URLs list from local backup."""
-    with open(path.join(path.dirname(__file__), 'repo', OPEN_TRACKERS_FILENAE)) as f:
+    with open(path.join(path.dirname(__file__), 'repo', OPEN_TRACKERS_FILENAME)) as f:
         open_trackers = map(str.strip, f.readlines())
 
-    return open_trackers
+    return list(open_trackers)
