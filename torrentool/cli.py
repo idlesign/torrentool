@@ -4,7 +4,9 @@ from os import path, getcwd
 
 from . import VERSION
 from .api import Torrent
-from .utils import humanize_filesize
+from .utils import humanize_filesize, upload_to_cache_server, get_open_trackers_from_remote, \
+    get_open_trackers_from_local
+from .exceptions import RemoteUploadError, RemoteDownloadError
 
 
 @click.group()
@@ -63,7 +65,12 @@ def create(source, dest, tracker, open_trackers, comment, cache):
         urls = tracker.split(',')
 
     if open_trackers:
-        urls.extend(get_open_trackers())
+        click.secho('Fetching an up-to-date open tracker list ...')
+        try:
+            urls.extend(get_open_trackers_from_remote())
+        except RemoteDownloadError:
+            click.secho('Failed. Using built-in open tracker list.', fg='red', err=True)
+            urls.extend(get_open_trackers_from_local())
 
     if urls:
         my_torrent.announce_urls = urls
@@ -74,62 +81,13 @@ def create(source, dest, tracker, open_trackers, comment, cache):
     click.secho('Torrent info hash: %s' % my_torrent.info_hash, fg='blue')
 
     if cache:
-        upload_cache(dest)
+        click.secho('Uploading to %s torrent cache service ...')
+        try:
+            result = upload_to_cache_server(dest)
+            click.secho('Cached torrent URL: %s' % result, fg='yellow')
 
-
-def upload_cache(fpath):
-    """Uploads .torrent file to a cache server."""
-    url_base = 'http://torrage.info'
-    url_upload = '%s/autoupload.php' % url_base
-    url_download = '%s/torrent.php?h=' % url_base
-    file_field = 'torrent'
-
-    click.secho('Uploading to %s torrent cache service ...')
-
-    try:
-        import requests
-
-        response = requests.post(url_upload, files={file_field: open(fpath, 'rb')})
-        response.raise_for_status()
-
-        info_cache = response.text
-        click.secho('Cached torrent URL: %s' % (url_download + info_cache), fg='yellow')
-
-    except (ImportError, requests.RequestException) as e:
-
-        if isinstance(e, ImportError):
-            click.secho('`requests` package is unavailable.', fg='red', err=True)
-
-        click.secho('Failed: %s' % e, fg='red', err=True)
-
-
-def get_open_trackers():
-    """Returns open trackers announce URLs list from remote repo or local backup."""
-
-    ourl = 'https://raw.githubusercontent.com/idlesign/torrentool/master/torrentool/repo'
-    ofile = 'open_trackers.ini'
-
-    click.secho('Fetching an up-to-date open tracker list ...')
-
-    try:
-        import requests
-
-        response = requests.get('%s/%s' % (ourl, ofile), timeout=3)
-        response.raise_for_status()
-
-        open_trackers = response.text.splitlines()
-
-    except (ImportError, requests.RequestException) as e:
-
-        if isinstance(e, ImportError):
-            click.secho('`requests` package is unavailable.', fg='red', err=True)
-
-        click.secho('Failed. Using built-in open tracker list.', fg='red', err=True)
-
-        with open(path.join(path.dirname(__file__), 'repo', ofile)) as f:
-            open_trackers = map(str.strip, f.readlines())
-
-    return open_trackers
+        except RemoteUploadError as e:
+            click.secho('Failed: %s' % e, fg='red', err=True)
 
 
 def main():

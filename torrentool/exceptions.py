@@ -17,3 +17,11 @@ class BencodeEncodingError(BencodeError):
 
 class TorrentError(TorrentoolException):
     """Base exception for Torrent object related errors."""
+
+
+class RemoteUploadError(TorrentoolException):
+    """Base class for upload to remotes related issues."""
+
+
+class RemoteDownloadError(TorrentoolException):
+    """Base class for issues related to downloads from remotes."""
