@@ -185,10 +185,8 @@ class Bencode(object):
         :param str string:
         :rtype: list
         """
-        try:
-            string = string.encode()  # Simple string.
-        except UnicodeDecodeError:
-            pass  # Possibly binary data (as in Torrent file).
+        if PY3 and not isinstance(string, byte_types):
+            string = string.encode()
 
         return cls.decode(string)
 

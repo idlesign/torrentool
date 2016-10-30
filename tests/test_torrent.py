@@ -145,6 +145,7 @@ def test_to_file():
     t2 = Torrent.from_file(fpath)
     assert t1._struct == t2._struct
 
+
 def test_str():
     """ Tests Torrent.__str__ method """
     t = Torrent.from_file(FPATH_TORRENT_SIMPLE)

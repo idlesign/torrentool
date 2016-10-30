@@ -8,7 +8,9 @@ from torrentool.exceptions import BencodeDecodingError, BencodeEncodingError
 from common import *
 
 
-if sys.version_info >= (3, 0):
+PY3 = sys.version_info >= (3, 0)
+
+if PY3:
     enc = lambda v: v.encode()
 else:
     enc = lambda v: v
@@ -66,6 +68,9 @@ def test_encode_simple():
     assert encode('spam') == enc('4:spam')
     assert encode('') == enc('0:')
 
+    assert encode(b'spam') == enc('4:spam')
+    assert encode(b'\xd0\xb9') == b'2:\xd0\xb9'
+
     assert encode(3) == enc('i3e')
     assert encode(-3) == enc('i-3e')
     assert encode(0) == enc('i0e')
@@ -101,9 +106,8 @@ def test_encode_errors():
         Bencode.encode(object())
 
 
-@pytest.mark.xfail(sys.version_info >= (3, 0),
-                   reason="py3 has no long")
+@pytest.mark.xfail(PY3, reason='py3 has no long')
 def test_encode_error_long():
     # os.path.getsize() can be longs on py2
     a_long = long(741634835)
-    encoded_long = Bencode.encode(a_long)
+    Bencode.encode(a_long)
