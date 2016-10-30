@@ -2,6 +2,11 @@ torrentool changelog
 ====================
 
 
+Unreleased
+----------
+* Bencode.read_string() now accepts binary data.
+
+
 v0.3.0
 ------
 + Added CLI: torrent create (including open trackers and cachers support).
