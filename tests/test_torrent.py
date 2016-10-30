@@ -4,7 +4,6 @@ import pytest
 from uuid import uuid4
 from tempfile import mkdtemp
 from datetime import datetime
-import sys
 
 from torrentool.api import Torrent
 from torrentool.exceptions import TorrentError

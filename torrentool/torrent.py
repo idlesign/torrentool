@@ -22,6 +22,28 @@ class Torrent(object):
     def __str__(self):
         return 'Torrent: %s' % self.name
 
+    announce_urls = property()
+    """List of lists of tracker announce URLs."""
+
+    comment = property()
+    """Optional. Free-form textual comments of the author."""
+
+    creation_date = property()
+    """Optional. The creation time of the torrent, in standard UNIX epoch format. UTC."""
+
+    created_by = property()
+    """Optional. Name and version of the program used to create the .torrent"""
+
+    private = property()
+    """Optional. If True the client MUST publish its presence to get other peers
+    ONLY via the trackers explicitly described in the metainfo file. If False or is not present,
+    the client may obtain peer from other means, e.g. PEX peer exchange, dht.
+
+    """
+
+    name = property()
+    """Torrent name (title)."""
+
     @property
     def files(self):
         """Files in torrent. List of tuples (filepath, size)."""
@@ -62,7 +84,8 @@ class Torrent(object):
         """Magnet link using BTIH (BitTorrent Info Hash) URN."""
         return 'magnet:?xt=urn:btih:' + self.info_hash
 
-    def _get_announce_urls(self):
+    @announce_urls.getter
+    def announce_urls(self):
         urls = self._struct.get('announce-list')
 
         if not urls:
@@ -73,7 +96,8 @@ class Torrent(object):
 
         return urls
 
-    def _set_announce_urls(self, val):
+    @announce_urls.setter
+    def announce_urls(self, val):
         self._struct['announce'] = ''
         self._struct['announce-list'] = []
 
@@ -99,43 +123,39 @@ class Torrent(object):
         else:
             set_single(val)
 
-    announce_urls = property(_get_announce_urls, _set_announce_urls)
-    """List of lists of tracker announce URLs."""
-
-    def _get_comment(self):
+    @comment.getter
+    def comment(self):
         return self._struct.get('comment')
 
-    def _set_comment(self, val):
+    @comment.setter
+    def comment(self, val):
         self._struct['comment'] = val
 
-    comment = property(_get_comment, _set_comment)
-    """Optional. Free-form textual comments of the author."""
-
-    def _get_creation_date(self):
+    @creation_date.getter
+    def creation_date(self):
         date = self._struct.get('creation date')
         if date is not None:
             date = datetime.utcfromtimestamp(int(date))
         return date
 
-    def _set_creation_date(self, val):
+    @creation_date.setter
+    def creation_date(self, val):
         self._struct['creation date'] = timegm(val.timetuple())
 
-    creation_date = property(_get_creation_date, _set_creation_date)
-    """Optional. The creation time of the torrent, in standard UNIX epoch format. UTC."""
-
-    def _get_created_by(self):
+    @created_by.getter
+    def created_by(self):
         return self._struct.get('created by')
 
-    def _set_created_by(self, val):
+    @created_by.setter
+    def created_by(self, val):
         self._struct['created by'] = val
 
-    created_by = property(_get_created_by, _set_created_by)
-    """Optional. Name and version of the program used to create the .torrent"""
-
-    def _get_private(self):
+    @private.getter
+    def private(self):
         return self._struct.get('info', {}).get('private', False)
 
-    def _set_private(self, val):
+    @private.setter
+    def private(self, val):
         if not val:
             try:
                 del self._struct['info']['private']
@@ -144,21 +164,13 @@ class Torrent(object):
         else:
             self._struct['info']['private'] = 1
 
-    private = property(_get_private, _set_private)
-    """Optional. If True the client MUST publish its presence to get other peers
-    ONLY via the trackers explicitly described in the metainfo file. If False or is not present,
-    the client may obtain peer from other means, e.g. PEX peer exchange, dht.
-
-    """
-
-    def _get_name(self):
+    @name.getter
+    def name(self):
         return self._struct.get('info', {}).get('name', None)
 
-    def _set_name(self, val):
+    @name.setter
+    def name(self, val):
         self._struct['info']['name'] = val
-
-    name = property(_get_name, _set_name)
-    """ Torrent's name """
 
     def to_file(self, filepath=None):
         """Writes Torrent object into file, either
