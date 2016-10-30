@@ -78,6 +78,12 @@ def test_getters_dir():
     assert 'btih' in magnet
     assert 'magnet:' in magnet
 
+    magnet = t.get_magnet(detailed=True)
+    assert (
+        magnet == 'magnet:?xt=urn:btih:c815be93f20bf8b12fed14bee35c14b19b1d1984'
+                  '&tr=http%3A%2F%2Ftrack1.org%2F1%2F&tr=http%3A%2F%2Ftrack2.org%2F2%2F'
+    )
+
 
 def test_setters():
     t = Torrent()

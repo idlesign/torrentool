@@ -5,9 +5,17 @@ from datetime import datetime
 from calendar import timegm
 from functools import reduce
 
+try:
+    from urllib.parse import urlencode
+except ImportError:  # Py2
+    from urllib import urlencode
+
 from .bencode import Bencode
 from .exceptions import TorrentError
 from .utils import get_app_version
+
+
+_ITERABLE_TYPES = (list, tuple, set)
 
 
 class Torrent(object):
@@ -82,10 +90,18 @@ class Torrent(object):
     @property
     def magnet_link(self):
         """Magnet link using BTIH (BitTorrent Info Hash) URN."""
-        return 'magnet:?xt=urn:btih:' + self.info_hash
+        return self.get_magnet(detailed=False)
 
     @announce_urls.getter
     def announce_urls(self):
+        """List of lists of announce (tracker) URLs.
+
+        First inner list is considered as primary announcers list,
+        the following lists as back-ups.
+
+        http://bittorrent.org/beps/bep_0012.html
+
+        """
         urls = self._struct.get('announce-list')
 
         if not urls:
@@ -105,9 +121,7 @@ class Torrent(object):
             del self._struct['announce-list']
             self._struct['announce'] = val
 
-        types = (list, tuple, set)
-
-        if isinstance(val, types):
+        if isinstance(val, _ITERABLE_TYPES):
             length = len(val)
 
             if length:
@@ -115,7 +129,7 @@ class Torrent(object):
                     set_single(val[0])
                 else:
                     for item in val:
-                        if not isinstance(item, types):
+                        if not isinstance(item, _ITERABLE_TYPES):
                             item = [item]
                         self._struct['announce-list'].append(item)
                     self._struct['announce'] = val[0]
@@ -171,6 +185,48 @@ class Torrent(object):
     @name.setter
     def name(self, val):
         self._struct['info']['name'] = val
+
+    def get_magnet(self, detailed=True):
+        """Returns torrent magnet link, consisting of BTIH (BitTorrent Info Hash) URN
+        anr optional other information.
+
+        :param bool|list|tuple|set detailed:
+            For boolean - whether additional info (such as trackers) should be included.
+            For iterable - expected allowed parameter names:
+                tr - trackers
+
+        """
+        result = 'magnet:?xt=urn:btih:' + self.info_hash
+
+        def add_tr():
+            trackers = []
+            for urls in self.announce_urls:
+                for url in urls:
+                    trackers.append(('tr', url))
+
+            if trackers:
+                return urlencode(trackers)
+
+        params_map = {
+            'tr': add_tr,
+        }
+
+        if detailed:
+            details = []
+
+            if isinstance(detailed, _ITERABLE_TYPES):
+                requested_params = detailed
+            else:
+                requested_params = params_map.keys()
+
+            for param in requested_params:
+                param_val = params_map[param]()
+                param_val and details.append(param_val)
+
+            if details:
+                result += '&%s' % '&'.join(details)
+
+        return result
 
     def to_file(self, filepath=None):
         """Writes Torrent object into file, either

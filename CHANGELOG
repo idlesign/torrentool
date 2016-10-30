@@ -4,6 +4,7 @@ torrentool changelog
 
 Unreleased
 ----------
++ Added Torrent.get_magnet().
 * Bencode.read_string() now accepts binary data.
 
 
