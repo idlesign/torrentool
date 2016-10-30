@@ -48,6 +48,9 @@ Using CLI
     ; and publish file on torrent caching service, so it is ready to share.
     $ torrentool torrent create /home/my/files_here --open_trackers --cache
 
+    ; Print out existing file info.
+    $ torrentool torrent info /home/my/some.torrent
+
 
 Use command line ``--help`` switch to know more.
 

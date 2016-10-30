@@ -1,8 +1,10 @@
+from __future__ import division
 import click
 from os import path, getcwd
 
-from torrentool import VERSION
-from torrentool.api import Torrent
+from . import VERSION
+from .api import Torrent
+from .utils import humanize_filesize
 
 
 @click.group()
@@ -14,6 +16,25 @@ def start():
 @start.group()
 def torrent():
     """Torrent-related commands."""
+
+
+@torrent.command()
+@click.argument('torrent_path', type=click.Path(exists=True, writable=False, dir_okay=False))
+def info(torrent_path):
+    """Print out information from .torrent file."""
+
+    my_torrent = Torrent.from_file(torrent_path)
+
+    size = my_torrent.total_size
+
+    click.secho('Name: %s' % my_torrent.name, fg='blue')
+    click.secho('Files:')
+    for file_tuple in my_torrent.files:
+        click.secho(file_tuple[0])
+
+    click.secho('Hash: %s' % my_torrent.info_hash, fg='blue')
+    click.secho('Size: %s (%s)' % (humanize_filesize(size), size), fg='blue')
+    click.secho('Magnet: %s' % my_torrent.get_magnet(), fg='yellow')
 
 
 @torrent.command()

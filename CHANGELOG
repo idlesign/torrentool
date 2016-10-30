@@ -7,6 +7,7 @@ Unreleased
 + Added Torrent.get_magnet().
 + Added Torrent.webseeds (BEP-19).
 + Added Torrent.httpseeds (BEP-17).
++ CLI: Added `torrent info` command.
 * Bencode.read_string() now accepts binary data.
 
 
