@@ -52,6 +52,30 @@ class Torrent(object):
     name = property()
     """Torrent name (title)."""
 
+    webseeds = property()
+    """A list of URLs where torrent data can be retrieved.
+
+    http://bittorrent.org/beps/bep_0019.html
+    """
+
+    @webseeds.getter
+    def webseeds(self):
+        return self._struct.get('url-list', [])
+
+    @webseeds.setter
+    def webseeds(self, val):
+        if val is None:
+            try:
+                del self._struct['url-list']
+                return
+            except KeyError:
+                pass
+
+        if not isinstance(val, _ITERABLE_TYPES):
+            val = [val]
+
+        self._struct['url-list'] = val
+
     @property
     def files(self):
         """Files in torrent. List of tuples (filepath, size)."""
@@ -194,6 +218,7 @@ class Torrent(object):
             For boolean - whether additional info (such as trackers) should be included.
             For iterable - expected allowed parameter names:
                 tr - trackers
+                ws - webseeds
 
         """
         result = 'magnet:?xt=urn:btih:' + self.info_hash
@@ -207,8 +232,14 @@ class Torrent(object):
             if trackers:
                 return urlencode(trackers)
 
+        def add_ws():
+            webseeds = [('ws', url) for url in self.webseeds]
+            if webseeds:
+                return urlencode(webseeds)
+
         params_map = {
             'tr': add_tr,
+            'ws': add_ws,
         }
 
         if detailed:

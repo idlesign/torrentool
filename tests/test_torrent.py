@@ -132,6 +132,26 @@ def test_setters():
     assert not t.private
 
 
+def test_setters_webseed():
+    t = Torrent()
+    t.name = 'mytorrent'
+
+    t.webseeds = 'http://host.some/file'
+    assert t.webseeds == ['http://host.some/file']
+    assert (
+        t.get_magnet() == 'magnet:?xt=urn:btih:0f967b3f021421750069f93d256e319f13c404b1'
+                          '&ws=http%3A%2F%2Fhost.some%2Ffile')
+
+    seeds = ['seed1', 'seed2']
+    t.webseeds = seeds
+    assert t.webseeds == seeds
+    assert t.get_magnet() == 'magnet:?xt=urn:btih:0f967b3f021421750069f93d256e319f13c404b1&ws=seed1&ws=seed2'
+
+    t.webseeds = None
+    assert t.webseeds == []
+    assert 'url-list' not in t._struct
+
+
 def test_from_string():
     torrstr = '4:spam'
     t = Torrent.from_string(torrstr)
