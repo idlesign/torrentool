@@ -152,6 +152,22 @@ def test_setters_webseed():
     assert 'url-list' not in t._struct
 
 
+def test_setters_httpseed():
+    t = Torrent()
+    t.name = 'mytorrent'
+
+    t.httpseeds = 'http://host.some/file'
+    assert t.httpseeds == ['http://host.some/file']
+
+    seeds = ['seed1', 'seed2']
+    t.httpseeds = seeds
+    assert t.httpseeds == seeds
+
+    t.httpseeds = None
+    assert t.httpseeds == []
+    assert 'httpseeds' not in t._struct
+
+
 def test_from_string():
     torrstr = '4:spam'
     t = Torrent.from_string(torrstr)

@@ -55,18 +55,26 @@ class Torrent(object):
     webseeds = property()
     """A list of URLs where torrent data can be retrieved.
 
+    See also: Torrent.httpseeds
+
     http://bittorrent.org/beps/bep_0019.html
     """
 
-    @webseeds.getter
-    def webseeds(self):
-        return self._struct.get('url-list', [])
+    httpseeds = property()
+    """A list of URLs where torrent data can be retrieved.
 
-    @webseeds.setter
-    def webseeds(self, val):
+    See also and prefer Torrent.webseeds
+
+    http://bittorrent.org/beps/bep_0017.html
+    """
+
+    def _list_getter(self, key):
+        return self._struct.get(key, [])
+
+    def _list_setter(self, key, val):
         if val is None:
             try:
-                del self._struct['url-list']
+                del self._struct[key]
                 return
             except KeyError:
                 pass
@@ -74,7 +82,23 @@ class Torrent(object):
         if not isinstance(val, _ITERABLE_TYPES):
             val = [val]
 
-        self._struct['url-list'] = val
+        self._struct[key] = val
+
+    @webseeds.getter
+    def webseeds(self):
+        return self._list_getter('url-list')
+
+    @webseeds.setter
+    def webseeds(self, val):
+        self._list_setter('url-list', val)
+
+    @httpseeds.getter
+    def httpseeds(self):
+        return self._list_getter('httpseeds')
+
+    @httpseeds.setter
+    def httpseeds(self, val):
+        self._list_setter('httpseeds', val)
 
     @property
     def files(self):

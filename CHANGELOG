@@ -5,7 +5,8 @@ torrentool changelog
 Unreleased
 ----------
 + Added Torrent.get_magnet().
-+ Added Torrent.webseeds.
++ Added Torrent.webseeds (BEP-19).
++ Added Torrent.httpseeds (BEP-17).
 * Bencode.read_string() now accepts binary data.
 
 
