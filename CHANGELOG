@@ -8,6 +8,7 @@ Unreleased
 + Added Torrent.webseeds (BEP-19).
 + Added Torrent.httpseeds (BEP-17).
 + CLI: Added `torrent info` command.
++ CLI: Windows compatibility improved (see #6)
 * Bencode.read_string() now accepts binary data.
 
 
