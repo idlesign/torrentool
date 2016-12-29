@@ -2,8 +2,8 @@ torrentool changelog
 ====================
 
 
-Unreleased
-----------
+v0.4.0
+------
 + Added Torrent.get_magnet().
 + Added Torrent.webseeds (BEP-19).
 + Added Torrent.httpseeds (BEP-17).
