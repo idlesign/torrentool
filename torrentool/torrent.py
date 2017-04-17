@@ -1,9 +1,11 @@
-from os.path import join, isdir, getsize, normpath, basename
-from os import walk, sep
-from hashlib import sha1
-from datetime import datetime
 from calendar import timegm
+from datetime import datetime
 from functools import reduce
+from hashlib import sha1
+from os import name as osname
+from os import sep, walk
+from os.path import basename, getsize, isdir, join, normpath
+
 
 try:
     from urllib.parse import urlencode
@@ -342,6 +344,8 @@ class Torrent(object):
         :param str src_path:
         :rtype: Torrent
         """
+        # "Escape" escape codes from the filepaths in windows
+        src_path = src_path if not osname != 'nt' else r'%s' % src_path
         is_dir = isdir(src_path)
         target_files, size_data = cls._get_target_files_info(src_path)
 
