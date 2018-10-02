@@ -5,9 +5,6 @@ https://github.com/idlesign/torrentool
 .. image:: https://img.shields.io/pypi/v/torrentool.svg
     :target: https://pypi.python.org/pypi/torrentool
 
-.. image:: https://img.shields.io/pypi/dm/torrentool.svg
-    :target: https://pypi.python.org/pypi/torrentool
-
 .. image:: https://img.shields.io/pypi/l/torrentool.svg
     :target: https://pypi.python.org/pypi/torrentool
 
