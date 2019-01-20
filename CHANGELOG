@@ -2,6 +2,11 @@ torrentool changelog
 ====================
 
 
+Unreleased
+----------
+! Dropped QA for Python 3.3 and 3.4.
+
+
 v0.4.0
 ------
 + Added Torrent.get_magnet().
