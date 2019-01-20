@@ -2,8 +2,8 @@ torrentool changelog
 ====================
 
 
-Unreleased
-----------
+v1.0.0
+------
 ! Dropped QA for Python 3.3 and 3.4.
 * No functional changes. Celebrating 1.0.0.
 
