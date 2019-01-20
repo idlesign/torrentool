@@ -5,7 +5,6 @@ sudo: false
 python:
   - 3.6
   - 3.5
-  - 2.7
 
 install:
   - pip install pytest coverage coveralls
