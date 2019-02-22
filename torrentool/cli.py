@@ -32,7 +32,7 @@ def info(torrent_path):
     click.secho('Name: %s' % my_torrent.name, fg='blue')
     click.secho('Files:')
     for file_tuple in my_torrent.files:
-        click.secho(file_tuple[0])
+        click.secho(file_tuple.name)
 
     click.secho('Hash: %s' % my_torrent.info_hash, fg='blue')
     click.secho('Size: %s (%s)' % (humanize_filesize(size), size), fg='blue')

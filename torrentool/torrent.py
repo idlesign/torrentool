@@ -1,9 +1,10 @@
-from os.path import join, isdir, getsize, normpath, basename
-from os import walk, sep
-from hashlib import sha1
-from datetime import datetime
 from calendar import timegm
+from collections import namedtuple
+from datetime import datetime
 from functools import reduce
+from hashlib import sha1
+from os import walk, sep
+from os.path import join, isdir, getsize, normpath, basename
 
 try:
     from urllib.parse import urlencode
@@ -16,6 +17,9 @@ from .utils import get_app_version
 
 
 _ITERABLE_TYPES = (list, tuple, set)
+
+
+TorrentFile = namedtuple('TorrentFile', ['name', 'length'])
 
 
 class Torrent(object):
@@ -102,7 +106,12 @@ class Torrent(object):
 
     @property
     def files(self):
-        """Files in torrent. List of tuples (filepath, size)."""
+        """Files in torrent.
+
+        List of namedtuples (filepath, size).
+
+        :rtype: list[TorrentFile]
+        """
         files = []
         info = self._struct.get('info')
 
@@ -113,10 +122,10 @@ class Torrent(object):
             base = info['name']
 
             for f in info['files']:
-                files.append((join(base, *f['path']), f['length']))
+                files.append(TorrentFile(join(base, *f['path']), f['length']))
 
         else:
-            files.append((info['name'], info['length']))
+            files.append(TorrentFile(info['name'], info['length']))
 
         return files
 

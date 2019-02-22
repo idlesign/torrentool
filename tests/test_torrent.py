@@ -37,7 +37,12 @@ def test_getters_simple():
     assert t._filepath == FPATH_TORRENT_SIMPLE
 
     assert t.created_by == 'Transmission/2.84 (14307)'
-    assert t.files == [('root.txt', 4)]
+
+    files = t.files
+    assert len(files) == 1
+    assert files[0].name == files[0][0] == 'root.txt'
+    assert files[0].length == 4
+
     assert t.total_size == 4
     assert t.name == u'root.txt'
     assert t.announce_urls == [['udp://123.123.123.123']]

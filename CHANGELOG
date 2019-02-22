@@ -5,6 +5,7 @@ torrentool changelog
 Unreleased
 ----------
 ! Dropped QA for Python 2.
+* Torrent.files now returns a list of named tuples for convenience (closes #9).
 
 
 v1.0.0
