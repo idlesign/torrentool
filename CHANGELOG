@@ -2,6 +2,11 @@ torrentool changelog
 ====================
 
 
+Unreleased
+----------
+* CLI. Fixed 'torrent create' command run without 'dest' argument.
+
+
 v1.0.1
 ------
 ! Dropped QA for Python 2.

@@ -41,7 +41,7 @@ def info(torrent_path):
 
 @torrent.command()
 @click.argument('source', type=click.Path(exists=True, writable=False))
-@click.option('--dest', getcwd(), type=click.Path(file_okay=False), help='Destination path to put .torrent file into. Default: current directory.')
+@click.option('--dest', default=getcwd, type=click.Path(file_okay=False), help='Destination path to put .torrent file into. Default: current directory.')
 @click.option('--tracker', default=None, help='Tracker announce URL (multiple comma-separated values supported).')
 @click.option('--open_trackers', default=False, is_flag=True, help='Add open trackers announce URLs.')
 @click.option('--comment', default=None, help='Arbitrary comment.')
