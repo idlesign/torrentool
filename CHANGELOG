@@ -2,8 +2,8 @@ torrentool changelog
 ====================
 
 
-Unreleased
-----------
+v1.0.2
+------
 * CLI. Fixed 'torrent create' command run without 'dest' argument.
 
 
