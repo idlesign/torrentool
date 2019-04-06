@@ -1,11 +1,16 @@
 # -*- encoding: utf-8 -*-
+import os
+import sys
+
 import pytest
 
+from torrentool.exceptions import RemoteUploadError, RemoteDownloadError
 from torrentool.utils import get_app_version, humanize_filesize, get_open_trackers_from_local, \
     get_open_trackers_from_remote, upload_to_cache_server
-from torrentool.exceptions import RemoteUploadError, RemoteDownloadError
+from .common import FPATH_TORRENT_SIMPLE
 
-from common import FPATH_TORRENT_SIMPLE
+# Mocking requests
+sys.path.insert(0, os.path.dirname(__file__))
 from requests import ResponseMock
 
 

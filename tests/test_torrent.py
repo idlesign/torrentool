@@ -8,7 +8,7 @@ from datetime import datetime
 from torrentool.api import Torrent
 from torrentool.exceptions import TorrentError
 
-from common import *
+from .common import *
 
 
 def test_create():

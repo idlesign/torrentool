@@ -5,7 +5,7 @@ import pytest
 from torrentool.api import Bencode
 from torrentool.exceptions import BencodeDecodingError, BencodeEncodingError
 
-from common import *
+from .common import *
 
 
 PY3 = sys.version_info >= (3, 0)
