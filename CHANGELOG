@@ -2,6 +2,11 @@ torrentool changelog
 ====================
 
 
+Unreleased
+----------
+* More proper error message when trying to add an empty file (#11).
+
+
 v1.0.2
 ------
 * CLI. Fixed 'torrent create' command run without 'dest' argument.

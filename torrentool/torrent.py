@@ -407,7 +407,12 @@ class Torrent(object):
             info['files'] = files
 
         else:
-            info['length'] = target_files[0][1]
+            try:
+                info['length'] = target_files[0][1]
+
+            except IndexError:
+                # Since empty files are skipped.
+                raise TorrentError('Unable to create torrent for an empty file.')
 
         torrent = cls({'info': info})
         torrent.created_by = get_app_version()
