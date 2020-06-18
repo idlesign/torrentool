@@ -5,6 +5,7 @@ from functools import reduce
 from hashlib import sha1
 from os import walk, sep
 from os.path import join, isdir, getsize, normpath, basename
+from typing import List, Union, Optional
 from urllib.parse import urlencode
 
 from .bencode import Bencode
@@ -17,58 +18,19 @@ _ITERABLE_TYPES = (list, tuple, set)
 TorrentFile = namedtuple('TorrentFile', ['name', 'length'])
 
 
-class Torrent(object):
+class Torrent:
     """Represents a torrent file, and exposes utilities to work with it."""
 
-    _filepath = None
-
-    def __init__(self, dict_struct=None):
-        dict_struct = dict_struct or {'info': {}}
+    def __init__(self, dict_struct: dict = None):
+        dict_struct: dict = dict_struct or {'info': {}}
         self._struct = dict_struct
+        self._filepath = None
 
     def __str__(self):
         return f'Torrent: {self.name}'
 
-    announce_urls = property()
-    """List of lists of tracker announce URLs."""
-
-    comment = property()
-    """Optional. Free-form textual comments of the author."""
-
-    creation_date = property()
-    """Optional. The creation time of the torrent, in standard UNIX epoch format. UTC."""
-
-    created_by = property()
-    """Optional. Name and version of the program used to create the .torrent"""
-
-    private = property()
-    """Optional. If True the client MUST publish its presence to get other peers
-    ONLY via the trackers explicitly described in the metainfo file. If False or is not present,
-    the client may obtain peer from other means, e.g. PEX peer exchange, dht.
-
-    """
-
-    name = property()
-    """Torrent name (title)."""
-
-    webseeds = property()
-    """A list of URLs where torrent data can be retrieved.
-
-    See also: Torrent.httpseeds
-
-    http://bittorrent.org/beps/bep_0019.html
-    """
-
-    httpseeds = property()
-    """A list of URLs where torrent data can be retrieved.
-
-    See also and prefer Torrent.webseeds
-
-    http://bittorrent.org/beps/bep_0017.html
-    """
-
-    def _list_getter(self, key):
-        return self._struct.get(key, [])
+    def _list_getter(self, key) -> list:
+        return self._struct.get(key) or []
 
     def _list_setter(self, key, val):
         if val is None:
@@ -83,29 +45,40 @@ class Torrent(object):
 
         self._struct[key] = val
 
-    @webseeds.getter
-    def webseeds(self):
+    @property
+    def webseeds(self) -> List[str]:
+        """A list of URLs where torrent data can be retrieved.
+
+        See also: Torrent.httpseeds
+
+        http://bittorrent.org/beps/bep_0019.html
+        """
         return self._list_getter('url-list')
 
     @webseeds.setter
-    def webseeds(self, val):
+    def webseeds(self, val: List[str]):
         self._list_setter('url-list', val)
 
-    @httpseeds.getter
-    def httpseeds(self):
+    @property
+    def httpseeds(self) -> List[str]:
+        """A list of URLs where torrent data can be retrieved.
+
+        See also and prefer Torrent.webseeds
+
+        http://bittorrent.org/beps/bep_0017.html
+        """
         return self._list_getter('httpseeds')
 
     @httpseeds.setter
-    def httpseeds(self, val):
+    def httpseeds(self, val: List[str]):
         self._list_setter('httpseeds', val)
 
     @property
-    def files(self):
+    def files(self) -> List['TorrentFile']:
         """Files in torrent.
 
         List of namedtuples (filepath, size).
 
-        :rtype: list[TorrentFile]
         """
         files = []
         info = self._struct.get('info')
@@ -125,12 +98,12 @@ class Torrent(object):
         return files
 
     @property
-    def total_size(self):
+    def total_size(self) -> int:
         """Total size of all files in torrent."""
         return reduce(lambda prev, curr: prev + curr[1], self.files, 0)
 
     @property
-    def info_hash(self):
+    def info_hash(self) -> Optional[str]:
         """Hash of torrent file info section. Also known as torrent hash."""
         info = self._struct.get('info')
 
@@ -140,12 +113,12 @@ class Torrent(object):
         return sha1(Bencode.encode(info)).hexdigest()
 
     @property
-    def magnet_link(self):
+    def magnet_link(self) -> str:
         """Magnet link using BTIH (BitTorrent Info Hash) URN."""
         return self.get_magnet(detailed=False)
 
-    @announce_urls.getter
-    def announce_urls(self):
+    @property
+    def announce_urls(self) -> Optional[List[List[str]]]:
         """List of lists of announce (tracker) URLs.
 
         First inner list is considered as primary announcers list,
@@ -165,7 +138,7 @@ class Torrent(object):
         return urls
 
     @announce_urls.setter
-    def announce_urls(self, val):
+    def announce_urls(self, val: List[str]):
         self._struct['announce'] = ''
         self._struct['announce-list'] = []
 
@@ -189,39 +162,49 @@ class Torrent(object):
         else:
             set_single(val)
 
-    @comment.getter
-    def comment(self):
+    @property
+    def comment(self) -> Optional[str]:
+        """Optional. Free-form textual comments of the author."""
         return self._struct.get('comment')
 
     @comment.setter
-    def comment(self, val):
+    def comment(self, val: str):
         self._struct['comment'] = val
 
-    @creation_date.getter
-    def creation_date(self):
+    @property
+    def creation_date(self) -> Optional[datetime]:
+        """Optional. The creation time of the torrent, in standard UNIX epoch format. UTC."""
+
         date = self._struct.get('creation date')
         if date is not None:
             date = datetime.utcfromtimestamp(int(date))
+
         return date
 
     @creation_date.setter
-    def creation_date(self, val):
+    def creation_date(self, val: datetime):
         self._struct['creation date'] = timegm(val.timetuple())
 
-    @created_by.getter
-    def created_by(self):
+    @property
+    def created_by(self) -> Optional[str]:
+        """Optional. Name and version of the program used to create the .torrent"""
         return self._struct.get('created by')
 
     @created_by.setter
-    def created_by(self, val):
+    def created_by(self, val: str):
         self._struct['created by'] = val
 
-    @private.getter
-    def private(self):
+    @property
+    def private(self) -> bool:
+        """Optional. If True the client MUST publish its presence to get other peers
+        ONLY via the trackers explicitly described in the metainfo file. If False or is not present,
+        the client may obtain peer from other means, e.g. PEX peer exchange, dht.
+
+        """
         return self._struct.get('info', {}).get('private', False)
 
     @private.setter
-    def private(self, val):
+    def private(self, val: bool):
         if not val:
             try:
                 del self._struct['info']['private']
@@ -230,15 +213,16 @@ class Torrent(object):
         else:
             self._struct['info']['private'] = 1
 
-    @name.getter
-    def name(self):
+    @property
+    def name(self) -> Optional[str]:
+        """Torrent name (title)."""
         return self._struct.get('info', {}).get('name', None)
 
     @name.setter
-    def name(self, val):
+    def name(self, val: str):
         self._struct['info']['name'] = val
 
-    def get_magnet(self, detailed=True):
+    def get_magnet(self, detailed: Union[bool, list, tuple, set] = True) -> str:
         """Returns torrent magnet link, consisting of BTIH (BitTorrent Info Hash) URN
         anr optional other information.
 
@@ -292,10 +276,11 @@ class Torrent(object):
 
         return result
 
-    def to_file(self, filepath=None):
+    def to_file(self, filepath: str = None):
         """Writes Torrent object into file, either
 
         :param filepath:
+
         """
         if filepath is None and self._filepath is None:
             raise TorrentError('Unable to save torrent to file: no filepath supplied.')
@@ -306,12 +291,8 @@ class Torrent(object):
         with open(self._filepath, mode='wb') as f:
             f.write(self.to_string())
 
-    def to_string(self):
-        """Returns bytes representing torrent file.
-
-        :param str encoding: Encoding used by strings in Torrent object.
-        :rtype: bytearray
-        """
+    def to_string(self) -> bytes:
+        """Returns bytes representing torrent file."""
         return Bencode.encode(self._struct)
 
     @classmethod
@@ -340,11 +321,11 @@ class Torrent(object):
         return target_files_, total_size
 
     @classmethod
-    def create_from(cls, src_path):
+    def create_from(cls, src_path: str) -> 'Torrent':
         """Returns Torrent object created from a file or a directory.
 
-        :param str src_path:
-        :rtype: Torrent
+        :param src_path:
+
         """
         is_dir = isdir(src_path)
         target_files, size_data = cls._get_target_files_info(src_path)
@@ -416,20 +397,20 @@ class Torrent(object):
         return torrent
 
     @classmethod
-    def from_string(cls, string):
+    def from_string(cls, string: str) -> 'Torrent':
         """Alternative constructor to get Torrent object from string.
 
-        :param str string:
-        :rtype: Torrent
+        :param string:
+
         """
         return cls(Bencode.read_string(string))
 
     @classmethod
-    def from_file(cls, filepath):
+    def from_file(cls, filepath: str) -> 'Torrent':
         """Alternative constructor to get Torrent object from file.
 
-        :param str filepath:
-        :rtype: Torrent
+        :param filepath:
+
         """
         torrent = cls(Bencode.read_file(filepath))
         torrent._filepath = filepath

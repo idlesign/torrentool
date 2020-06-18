@@ -1,23 +1,25 @@
 from codecs import encode
 from operator import itemgetter
+from typing import Union, Tuple
 
 from .exceptions import BencodeDecodingError, BencodeEncodingError
+
+TypeEncodable = Union[str, int, list, set, tuple, dict, bytes, bytearray]
 
 
 class Bencode:
     """Exposes utilities for bencoding."""
 
     @classmethod
-    def encode(cls, value):
+    def encode(cls, value: TypeEncodable) -> bytes:
         """Encodes a value into bencoded bytes.
 
         :param value: Python object to be encoded (str, int, list, dict).
-        :param str val_encoding: Encoding used by strings in a given object.
-        :rtype: bytes
+
         """
         val_encoding = 'utf-8'
 
-        def encode_str(v):
+        def encode_str(v: str) -> bytes:
             try:
                 v_enc = encode(v, val_encoding)
 
@@ -27,7 +29,7 @@ class Bencode:
             prefix = encode(f'{len(v_enc)}:', val_encoding)
             return prefix + v_enc
 
-        def encode_(val):
+        def encode_(val: TypeEncodable) -> bytes:
             if isinstance(val, str):
                 result = encode_str(val)
 
@@ -61,19 +63,20 @@ class Bencode:
         return encode_(value)
 
     @classmethod
-    def decode(cls, encoded):
+    def decode(cls, encoded: bytes) -> TypeEncodable:
         """Decodes bencoded data introduced as bytes.
 
         Returns decoded structure(s).
 
-        :param bytes encoded:
+        :param encoded:
+
         """
-        def create_dict(items):
+        def create_dict(items) -> dict:
             # Let's guarantee that dictionaries are sorted.
             k_v_pair = zip(*[iter(items)] * 2)
             return dict(sorted(k_v_pair, key=itemgetter(0)))
 
-        def create_list(items):
+        def create_list(items) -> list:
             return list(items)
 
         stack_items = []
@@ -93,7 +96,7 @@ class Bencode:
             container = container_creator(reversed(subitems))
             stack_items.append(container)
 
-        def parse_forward(till_char, sequence):
+        def parse_forward(till_char: str, sequence: bytes) -> Tuple[int, int]:
             number = ''
             char_sub_idx = 0
 
@@ -136,7 +139,8 @@ class Bencode:
 
                 string = encoded[char_sub_idx:last_char_idx]
                 try:
-                    string = string.decode('utf-8')
+                    string = string.decode()
+
                 except UnicodeDecodeError:
                     # Considered bytestring (e.g. `pieces` hashes concatenation).
                     pass
@@ -157,13 +161,13 @@ class Bencode:
         return stack_items
 
     @classmethod
-    def read_string(cls, string):
+    def read_string(cls, string: str) -> TypeEncodable:
         """Decodes a given bencoded string or bytestring.
 
         Returns decoded structure(s).
 
-        :param str string:
-        :rtype: list
+        :param string:
+
         """
         if not isinstance(string, (bytes, bytearray)):
             string = string.encode()
@@ -171,14 +175,15 @@ class Bencode:
         return cls.decode(string)
 
     @classmethod
-    def read_file(cls, filepath):
+    def read_file(cls, filepath: str) -> TypeEncodable:
         """Decodes bencoded data of a given file.
 
         Returns decoded structure(s).
 
-        :param str filepath:
-        :rtype: list
+        :param filepath:
+
         """
         with open(filepath, mode='rb') as f:
             contents = f.read()
+
         return cls.decode(contents)
