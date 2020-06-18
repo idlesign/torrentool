@@ -20,9 +20,6 @@ https://github.com/idlesign/torrentool
 .. image:: https://img.shields.io/travis/idlesign/torrentool/master.svg
     :target: https://travis-ci.org/idlesign/torrentool
 
-.. image:: https://landscape.io/github/idlesign/torrentool/master/landscape.svg?style=flat
-   :target: https://landscape.io/github/idlesign/torrentool/master
-
 
 Description
 -----------
