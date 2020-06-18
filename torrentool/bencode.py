@@ -1,5 +1,4 @@
 from codecs import encode
-from collections import OrderedDict
 from operator import itemgetter
 
 from .exceptions import BencodeDecodingError, BencodeEncodingError
@@ -45,7 +44,7 @@ class Bencode:
                 result = encode('d', val_encoding)
 
                 # Dictionaries are expected to be sorted by key.
-                for k, v in OrderedDict(sorted(val.items(), key=itemgetter(0))).items():
+                for k, v in sorted(val.items(), key=itemgetter(0)):
                     result += (encode_str(k) + encode_(v))
 
                 result += encode('e', val_encoding)
@@ -72,7 +71,7 @@ class Bencode:
         def create_dict(items):
             # Let's guarantee that dictionaries are sorted.
             k_v_pair = zip(*[iter(items)] * 2)
-            return OrderedDict(sorted(k_v_pair, key=itemgetter(0)))
+            return dict(sorted(k_v_pair, key=itemgetter(0)))
 
         def create_list(items):
             return list(items)
