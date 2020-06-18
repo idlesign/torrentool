@@ -19,7 +19,7 @@ STRUCT_TORRENT_WITH_DIR = {
         'files': [
             {'length': 4, 'path': ['root.txt']},
             {'length': 4, 'path': ['sub1', 'sub11.txt']},
-            {'length': 11, 'path': ['sub1', 'sub2', u'кириллица.txt']},
+            {'length': 11, 'path': ['sub1', 'sub2', 'кириллица.txt']},
             {'length': 4, 'path': ['sub1', 'sub2', 'sub22.txt']}
         ],
         'name': 'torrtest',

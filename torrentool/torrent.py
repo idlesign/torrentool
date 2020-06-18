@@ -316,7 +316,7 @@ class Torrent(object):
 
     @classmethod
     def _get_target_files_info(cls, src_path):
-        src_path = u'%s' % src_path  # Force walk() to return unicode names.
+        src_path = '%s' % src_path  # Force walk() to return unicode names.
 
         is_dir = isdir(src_path)
         target_files = []
