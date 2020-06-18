@@ -26,7 +26,7 @@ Description
 
 *The tool to work with torrent files.*
 
-Works on Python 2.7+ and 3.5+.
+Works on Python 3.6+.
 
 Includes:
 

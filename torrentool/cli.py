@@ -1,12 +1,12 @@
-from __future__ import division
-import click
 from os import path, getcwd
+
+import click
 
 from . import VERSION
 from .api import Torrent
+from .exceptions import RemoteUploadError, RemoteDownloadError
 from .utils import humanize_filesize, upload_to_cache_server, get_open_trackers_from_remote, \
     get_open_trackers_from_local
-from .exceptions import RemoteUploadError, RemoteDownloadError
 
 
 @click.group()

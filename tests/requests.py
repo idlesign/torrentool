@@ -1,7 +1,7 @@
 # This is a stab file to mock `requests` package and some of its contents for tests.
 
 
-class ResponseMock(object):
+class ResponseMock:
 
     def __init__(self, text):
         self.text = text

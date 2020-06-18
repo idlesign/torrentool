@@ -1,26 +1,11 @@
+from codecs import encode
 from collections import OrderedDict
 from operator import itemgetter
-from codecs import encode
-from sys import version_info
 
 from .exceptions import BencodeDecodingError, BencodeEncodingError
 
 
-PY3 = version_info >= (3, 0)
-
-if PY3:
-    str_type = str
-    byte_types = (bytes, bytearray)
-    chr_ = chr
-    int_types = int
-else:
-    str_type = basestring
-    byte_types = bytes
-    chr_ = lambda ch: ch
-    int_types = (int, long)
-
-
-class Bencode(object):
+class Bencode:
     """Exposes utilities for bencoding."""
 
     @classmethod
@@ -38,20 +23,16 @@ class Bencode(object):
                 v_enc = encode(v, val_encoding)
 
             except UnicodeDecodeError:
-                if PY3:
-                    raise
-                else:
-                    # Suppose bytestring
-                    v_enc = v
+                raise
 
             prefix = encode('%s:' % len(v_enc), val_encoding)
             return prefix + v_enc
 
         def encode_(val):
-            if isinstance(val, str_type):
+            if isinstance(val, str):
                 result = encode_str(val)
 
-            elif isinstance(val, int_types):
+            elif isinstance(val, int):
                 result = encode(('i%se' % val), val_encoding)
 
             elif isinstance(val, (list, set, tuple)):
@@ -69,7 +50,7 @@ class Bencode(object):
 
                 result += encode('e', val_encoding)
 
-            elif isinstance(val, byte_types):
+            elif isinstance(val, (bytes, bytearray)):
                 result = encode('%s:' % len(val), val_encoding)
                 result += val
 
@@ -118,7 +99,7 @@ class Bencode(object):
             char_sub_idx = 0
 
             for char_sub_idx, char_sub in enumerate(sequence):
-                char_sub = chr_(char_sub)
+                char_sub = chr(char_sub)
                 if char_sub == till_char:
                     break
 
@@ -131,7 +112,7 @@ class Bencode(object):
 
         while encoded:
             char = encoded[0]
-            char = chr_(char)
+            char = chr(char)
 
             if char == 'd':  # Dictionary
                 stack_items.append(create_dict)
@@ -185,7 +166,7 @@ class Bencode(object):
         :param str string:
         :rtype: list
         """
-        if PY3 and not isinstance(string, byte_types):
+        if not isinstance(string, (bytes, bytearray)):
             string = string.encode()
 
         return cls.decode(string)

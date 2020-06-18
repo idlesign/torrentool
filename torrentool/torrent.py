@@ -5,16 +5,11 @@ from functools import reduce
 from hashlib import sha1
 from os import walk, sep
 from os.path import join, isdir, getsize, normpath, basename
-
-try:
-    from urllib.parse import urlencode
-except ImportError:  # Py2
-    from urllib import urlencode
+from urllib.parse import urlencode
 
 from .bencode import Bencode
 from .exceptions import TorrentError
 from .utils import get_app_version
-
 
 _ITERABLE_TYPES = (list, tuple, set)
 

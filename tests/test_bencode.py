@@ -1,19 +1,10 @@
-# -*- encoding: utf-8 -*-
-import sys
 import pytest
 
 from torrentool.api import Bencode
 from torrentool.exceptions import BencodeDecodingError, BencodeEncodingError
-
 from .common import *
 
-
-PY3 = sys.version_info >= (3, 0)
-
-if PY3:
-    enc = lambda v: v.encode()
-else:
-    enc = lambda v: v
+enc = lambda v: v.encode()
 
 decode = Bencode.read_string
 encode = Bencode.encode
@@ -104,10 +95,3 @@ def test_encode_complex():
 def test_encode_errors():
     with pytest.raises(BencodeEncodingError):
         Bencode.encode(object())
-
-
-@pytest.mark.xfail(PY3, reason='py3 has no long')
-def test_encode_error_long():
-    # os.path.getsize() can be longs on py2
-    a_long = long(741634835)
-    Bencode.encode(a_long)
