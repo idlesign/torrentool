@@ -27,7 +27,7 @@ class Torrent(object):
         self._struct = dict_struct
 
     def __str__(self):
-        return 'Torrent: %s' % self.name
+        return f'Torrent: {self.name}'
 
     announce_urls = property()
     """List of lists of tracker announce URLs."""
@@ -288,7 +288,7 @@ class Torrent(object):
                 param_val and details.append(param_val)
 
             if details:
-                result += '&%s' % '&'.join(details)
+                result += f'&{"&".join(details)}'
 
         return result
 
@@ -316,7 +316,7 @@ class Torrent(object):
 
     @classmethod
     def _get_target_files_info(cls, src_path):
-        src_path = '%s' % src_path  # Force walk() to return unicode names.
+        src_path = f'{src_path}'  # Force walk() to return unicode names.
 
         is_dir = isdir(src_path)
         target_files = []

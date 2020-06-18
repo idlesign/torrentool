@@ -13,8 +13,8 @@ def get_app_version():
     suitable for putting into Torrent.created_by.
 
     """
-    from torrentool import VERSION
-    return 'torrentool/%s' % '.'.join(map(str, VERSION))
+    from torrentool import VERSION_STR
+    return f'torrentool/{VERSION_STR}'
 
 
 def humanize_filesize(bytes_size):
@@ -31,7 +31,7 @@ def humanize_filesize(bytes_size):
     name_idx = int(math.floor(math.log(bytes_size, 1024)))
     size = round(bytes_size / math.pow(1024, name_idx), 2)
 
-    return '%s %s' % (size, names[name_idx])
+    return f'{size} {names[name_idx]}'
 
 
 def upload_to_cache_server(fpath):
@@ -42,8 +42,8 @@ def upload_to_cache_server(fpath):
     :rtype: str
     """
     url_base = 'http://torrage.info'
-    url_upload = '%s/autoupload.php' % url_base
-    url_download = '%s/torrent.php?h=' % url_base
+    url_upload = f'{url_base}/autoupload.php'
+    url_download = f'{url_base}/torrent.php?h='
     file_field = 'torrent'
 
     try:
@@ -58,14 +58,14 @@ def upload_to_cache_server(fpath):
     except (ImportError, requests.RequestException) as e:
 
         # Now trace is lost. `raise from` to consider.
-        raise RemoteUploadError('Unable to upload to %s: %s' % (url_upload, e))
+        raise RemoteUploadError(f'Unable to upload to {url_upload}: {e}')
 
 
 def get_open_trackers_from_remote():
     """Returns open trackers announce URLs list from remote repo."""
 
     url_base = 'https://raw.githubusercontent.com/idlesign/torrentool/master/torrentool/repo'
-    url = '%s/%s' % (url_base, OPEN_TRACKERS_FILENAME)
+    url = f'{url_base}/{OPEN_TRACKERS_FILENAME}'
 
     try:
         import requests
@@ -78,7 +78,7 @@ def get_open_trackers_from_remote():
     except (ImportError, requests.RequestException) as e:
 
         # Now trace is lost. `raise from` to consider.
-        raise RemoteDownloadError('Unable to download from %s: %s' % (url, e))
+        raise RemoteDownloadError(f'Unable to download from {url}: {e}')
 
     return open_trackers
 

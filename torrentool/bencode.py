@@ -24,7 +24,7 @@ class Bencode:
             except UnicodeDecodeError:
                 raise
 
-            prefix = encode('%s:' % len(v_enc), val_encoding)
+            prefix = encode(f'{len(v_enc)}:', val_encoding)
             return prefix + v_enc
 
         def encode_(val):
@@ -32,7 +32,7 @@ class Bencode:
                 result = encode_str(val)
 
             elif isinstance(val, int):
-                result = encode(('i%se' % val), val_encoding)
+                result = encode(f'i{val}e', val_encoding)
 
             elif isinstance(val, (list, set, tuple)):
                 result = encode('l', val_encoding)
@@ -50,11 +50,11 @@ class Bencode:
                 result += encode('e', val_encoding)
 
             elif isinstance(val, (bytes, bytearray)):
-                result = encode('%s:' % len(val), val_encoding)
+                result = encode(f'{len(val)}:', val_encoding)
                 result += val
 
             else:
-                raise BencodeEncodingError('Unable to encode `%s` %s' % (type(val), val))
+                raise BencodeEncodingError(f'Unable to encode `{type(val)}` {val}')
 
             return result
 
@@ -149,7 +149,7 @@ class Bencode:
                 encoded = encoded[1:]
 
             else:
-                raise BencodeDecodingError('Unable to interpret `%s` char.' % char)
+                raise BencodeDecodingError(f'Unable to interpret `{char}` char.')
 
         if len(stack_items) == 1:
             stack_items = stack_items.pop()

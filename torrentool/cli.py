@@ -29,14 +29,14 @@ def info(torrent_path):
 
     size = my_torrent.total_size
 
-    click.secho('Name: %s' % my_torrent.name, fg='blue')
+    click.secho(f'Name: {my_torrent.name}', fg='blue')
     click.secho('Files:')
     for file_tuple in my_torrent.files:
         click.secho(file_tuple.name)
 
-    click.secho('Hash: %s' % my_torrent.info_hash, fg='blue')
-    click.secho('Size: %s (%s)' % (humanize_filesize(size), size), fg='blue')
-    click.secho('Magnet: %s' % my_torrent.get_magnet(), fg='yellow')
+    click.secho(f'Hash: {my_torrent.info_hash}', fg='blue')
+    click.secho(f'Size: {humanize_filesize(size)} ({size})', fg='blue')
+    click.secho(f'Magnet: {my_torrent.get_magnet()}', fg='yellow')
 
 
 @torrent.command()
@@ -50,9 +50,9 @@ def create(source, dest, tracker, open_trackers, comment, cache):
     """Create torrent file from a single file or a directory."""
 
     source_title = path.basename(source).replace('.', '_').replace(' ', '_')
-    dest = '%s.torrent' % path.join(dest, source_title)
+    dest = f'{path.join(dest, source_title)}.torrent'
 
-    click.secho('Creating torrent from %s ...' % source)
+    click.secho(f'Creating torrent from {source} ...')
 
     my_torrent = Torrent.create_from(source)
 
@@ -77,17 +77,17 @@ def create(source, dest, tracker, open_trackers, comment, cache):
 
     my_torrent.to_file(dest)
 
-    click.secho('Torrent file created: %s' % dest, fg='green')
-    click.secho('Torrent info hash: %s' % my_torrent.info_hash, fg='blue')
+    click.secho(f'Torrent file created: {dest}', fg='green')
+    click.secho(f'Torrent info hash: {my_torrent.info_hash}', fg='blue')
 
     if cache:
-        click.secho('Uploading to %s torrent cache service ...')
+        click.secho('Uploading to cache service ...')
         try:
             result = upload_to_cache_server(dest)
-            click.secho('Cached torrent URL: %s' % result, fg='yellow')
+            click.secho(f'Cached torrent URL: {result}', fg='yellow')
 
         except RemoteUploadError as e:
-            click.secho('Failed: %s' % e, fg='red', err=True)
+            click.secho(f'Failed: {e}', fg='red', err=True)
 
 
 def main():
