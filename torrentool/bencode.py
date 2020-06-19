@@ -1,5 +1,6 @@
 from codecs import encode
 from operator import itemgetter
+from pathlib import Path
 from typing import Union, Tuple
 
 from .exceptions import BencodeDecodingError, BencodeEncodingError
@@ -175,7 +176,7 @@ class Bencode:
         return cls.decode(string)
 
     @classmethod
-    def read_file(cls, filepath: str) -> TypeEncodable:
+    def read_file(cls, filepath: Union[str, Path]) -> TypeEncodable:
         """Decodes bencoded data of a given file.
 
         Returns decoded structure(s).
@@ -183,7 +184,7 @@ class Bencode:
         :param filepath:
 
         """
-        with open(filepath, mode='rb') as f:
+        with open(str(filepath), mode='rb') as f:
             contents = f.read()
 
         return cls.decode(contents)

@@ -32,7 +32,7 @@ def test_create(datafix_dir, struct_torr_dir, struct_torr_file):
 def test_getters_simple(torr_test_file):
     t = Torrent.from_file(torr_test_file)
 
-    assert t._filepath == torr_test_file
+    assert str(t._filepath) == torr_test_file
 
     assert t.created_by == 'Transmission/2.84 (14307)'
 
@@ -59,7 +59,7 @@ def test_getters_simple(torr_test_file):
 def test_getters_dir(torr_test_dir):
     t = Torrent.from_file(torr_test_dir)
 
-    assert t._filepath == torr_test_dir
+    assert str(t._filepath) == torr_test_dir
 
     assert t.created_by == 'Transmission/2.84 (14307)'
     assert t.files == [

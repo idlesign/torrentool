@@ -5,6 +5,7 @@ torrentool changelog
 Unreleased
 ----------
 ! Dropped support for Python 2 and 3.5.
++ Added support for pathlib.Path.
 * More proper error message when trying to add an empty file (#11).
 
 

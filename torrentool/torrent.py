@@ -4,8 +4,9 @@ from datetime import datetime
 from functools import reduce
 from hashlib import sha1
 from os import walk, sep
-from os.path import join, isdir, getsize, normpath, basename
-from typing import List, Union, Optional
+from os.path import join, getsize, normpath
+from pathlib import Path
+from typing import List, Union, Optional, Tuple
 from urllib.parse import urlencode
 
 from .bencode import Bencode
@@ -24,7 +25,7 @@ class Torrent:
     def __init__(self, dict_struct: dict = None):
         dict_struct: dict = dict_struct or {'info': {}}
         self._struct = dict_struct
-        self._filepath = None
+        self._filepath: Optional[Path] = None
 
     def __str__(self):
         return f'Torrent: {self.name}'
@@ -52,6 +53,7 @@ class Torrent:
         See also: Torrent.httpseeds
 
         http://bittorrent.org/beps/bep_0019.html
+
         """
         return self._list_getter('url-list')
 
@@ -66,6 +68,7 @@ class Torrent:
         See also and prefer Torrent.webseeds
 
         http://bittorrent.org/beps/bep_0017.html
+
         """
         return self._list_getter('httpseeds')
 
@@ -296,10 +299,10 @@ class Torrent:
         return Bencode.encode(self._struct)
 
     @classmethod
-    def _get_target_files_info(cls, src_path):
-        src_path = f'{src_path}'  # Force walk() to return unicode names.
+    def _get_target_files_info(cls, src_path: Path) -> Tuple[List[Tuple[str, int, List[str]]], int]:
+        is_dir = src_path.is_dir()
 
-        is_dir = isdir(src_path)
+        src_path = f'{src_path}'  # Force walk() to return unicode names.
         target_files = []
 
         if is_dir:
@@ -311,23 +314,28 @@ class Torrent:
 
         target_files_ = []
         total_size = 0
+
         for fpath in target_files:
             file_size = getsize(fpath)
+
             if not file_size:
                 continue
+
             target_files_.append((fpath, file_size, normpath(fpath.replace(src_path, '')).strip(sep).split(sep)))
             total_size += file_size
 
         return target_files_, total_size
 
     @classmethod
-    def create_from(cls, src_path: str) -> 'Torrent':
+    def create_from(cls, src_path: Union[str, Path]) -> 'Torrent':
         """Returns Torrent object created from a file or a directory.
 
         :param src_path:
 
         """
-        is_dir = isdir(src_path)
+        if isinstance(src_path, str):
+            src_path = Path(src_path)
+
         target_files, size_data = cls._get_target_files_info(src_path)
 
         SIZE_MIN = 32768  # 32 KiB
@@ -369,12 +377,12 @@ class Torrent:
             pieces_buffer = bytearray()
 
         info = {
-            'name': basename(src_path),
+            'name': src_path.name,
             'pieces': bytes(pieces),
             'piece length': size_piece,
         }
 
-        if is_dir:
+        if src_path.is_dir():
             files = []
 
             for _, length, path in target_files:
@@ -406,12 +414,15 @@ class Torrent:
         return cls(Bencode.read_string(string))
 
     @classmethod
-    def from_file(cls, filepath: str) -> 'Torrent':
+    def from_file(cls, filepath: Union[str, Path]) -> 'Torrent':
         """Alternative constructor to get Torrent object from file.
 
         :param filepath:
 
         """
+        if isinstance(filepath, str):
+            filepath = Path(filepath)
+
         torrent = cls(Bencode.read_file(filepath))
         torrent._filepath = filepath
         return torrent
