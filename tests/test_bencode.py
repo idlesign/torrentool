@@ -2,7 +2,6 @@ import pytest
 
 from torrentool.api import Bencode
 from torrentool.exceptions import BencodeDecodingError, BencodeEncodingError
-from .common import *
 
 enc = lambda v: v.encode()
 
@@ -16,14 +15,14 @@ def read_file(filepath):
     return contents
 
 
-def test_read_file_dir():
-    decoded = Bencode.read_file(FPATH_TORRENT_WITH_DIR)
-    assert decoded == STRUCT_TORRENT_WITH_DIR
+def test_read_file_dir(torr_test_dir, struct_torr_dir):
+    decoded = Bencode.read_file(torr_test_dir)
+    assert decoded == struct_torr_dir
 
 
-def test_read_file():
-    decoded = Bencode.read_file(FPATH_TORRENT_SIMPLE)
-    assert decoded == STRUCT_TORRENT_SIMPLE
+def test_read_file(torr_test_file, struct_torr_file):
+    decoded = Bencode.read_file(torr_test_file)
+    assert decoded == struct_torr_file
 
 
 def test_decode_simple():
@@ -82,13 +81,13 @@ def test_encode_simple():
     assert encode({}) == enc('de')
 
 
-def test_encode_complex():
-    encoded = encode(STRUCT_TORRENT_SIMPLE)
-    from_file = read_file(FPATH_TORRENT_SIMPLE)
+def test_encode_complex(struct_torr_file, struct_torr_dir, torr_test_file, torr_test_dir):
+    encoded = encode(struct_torr_file)
+    from_file = read_file(torr_test_file)
     assert encoded == from_file
 
-    encoded = encode(STRUCT_TORRENT_WITH_DIR)
-    from_file = read_file(FPATH_TORRENT_WITH_DIR)
+    encoded = encode(struct_torr_dir)
+    from_file = read_file(torr_test_dir)
     assert encoded == from_file
 
 

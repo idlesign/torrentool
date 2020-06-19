@@ -1,1 +1,1 @@
-tests/torrtest/*.txt text eol=lf
+tests/datafixtures/*.txt text eol=lf

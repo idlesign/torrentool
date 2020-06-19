@@ -1,17 +1,8 @@
-# -*- encoding: utf-8 -*-
-import os
-import sys
-
 import pytest
 
 from torrentool.exceptions import RemoteUploadError, RemoteDownloadError
 from torrentool.utils import get_app_version, humanize_filesize, get_open_trackers_from_local, \
     get_open_trackers_from_remote, upload_to_cache_server
-from .common import FPATH_TORRENT_SIMPLE
-
-# Mocking requests
-sys.path.insert(0, os.path.dirname(__file__))
-from requests import ResponseMock
 
 
 def test_get_app_version():
@@ -24,22 +15,27 @@ def test_filesize():
     assert humanize_filesize(1024 * 1024) == '1.0 MB'
 
 
-def test_get_opentrackers(monkeypatch):
+def test_get_opentrackers(monkeypatch, response_mock):
+
     assert isinstance(get_open_trackers_from_local(), list)
 
-    monkeypatch.setattr('requests.get', lambda *args, **kwargs: ResponseMock('1\n2\n'), raising=False)
-    assert get_open_trackers_from_remote() == ['1', '2']
+    url = 'https://raw.githubusercontent.com/idlesign/torrentool/master/torrentool/repo/open_trackers.ini'
 
-    monkeypatch.setattr('requests.get', lambda *args, **kwargs: ResponseMock(None), raising=False)
-    with pytest.raises(RemoteDownloadError):
-        get_open_trackers_from_remote()
+    with response_mock(f'GET  {url} -> 200:1\n2\n'):
+        assert get_open_trackers_from_remote() == ['1', '2']
+
+    with response_mock(f'GET  {url} -> 500:'):
+        with pytest.raises(RemoteDownloadError):
+            get_open_trackers_from_remote()
 
 
-def test_cache_upload(monkeypatch):
+def test_cache_upload(monkeypatch, torr_test_file, response_mock):
 
-    monkeypatch.setattr('requests.post', lambda *args, **kwargs: ResponseMock('somehash'), raising=False)
-    assert upload_to_cache_server(FPATH_TORRENT_SIMPLE) == 'http://torrage.info/torrent.php?h=somehash'
+    url = 'http://torrage.info/autoupload.php'
 
-    monkeypatch.setattr('requests.post', lambda *args, **kwargs: ResponseMock(None), raising=False)
-    with pytest.raises(RemoteUploadError):
-        upload_to_cache_server(FPATH_TORRENT_SIMPLE)
+    with response_mock(f'POST {url} -> 200:somehash'):
+        assert upload_to_cache_server(torr_test_file) == 'http://torrage.info/torrent.php?h=somehash'
+
+    with response_mock(f'POST {url} -> 500:'):
+        with pytest.raises(RemoteUploadError):
+            upload_to_cache_server(torr_test_file)

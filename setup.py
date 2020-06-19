@@ -31,7 +31,11 @@ setup(
 
     install_requires=[],
     setup_requires=[] + PYTEST_RUNNER,
-    tests_require=['pytest'],
+    tests_require=[
+        'pytest',
+        'pytest-datafixtures',
+        'pytest-responsemock',
+    ],
 
     entry_points={
         'console_scripts': ['torrentool = torrentool.cli:main'],

@@ -1,29 +1,27 @@
-# -*- encoding: utf-8 -*-
-from os.path import normpath
-import pytest
-from uuid import uuid4
-from tempfile import mkdtemp
 from datetime import datetime
+from os.path import normpath, join
+from tempfile import mkdtemp
+from uuid import uuid4
+
+import pytest
 
 from torrentool.api import Torrent
 from torrentool.exceptions import TorrentError
 
-from .common import *
 
-
-def test_create():
-    fp = join(CURRENT_DIR, 'torrtest', 'root.txt')
-    t = Torrent.create_from(fp)
+def test_create(datafix_dir, struct_torr_dir, struct_torr_file):
+    fp = datafix_dir / 'torrtest' / 'root.txt'
+    t = Torrent.create_from(str(fp))
     t.private = True
 
-    assert t._struct['info'] == STRUCT_TORRENT_SIMPLE['info']
+    assert t._struct['info'] == struct_torr_file['info']
 
     # Note that STRUCT_TORRENT_WITH_DIR will probably
     # differ from struct created during this test (due to different file ordering - Transmission-torrentool),
     # so all we do is checking all files are present.
-    t = Torrent.create_from(join(CURRENT_DIR, 'torrtest'))
+    t = Torrent.create_from(str(datafix_dir / 'torrtest'))
     info = t._struct['info']
-    expected_info = STRUCT_TORRENT_WITH_DIR['info']
+    expected_info = struct_torr_dir['info']
 
     def get_fpaths(info):
         return {'|'.join(f['path']) for f in info['files']}
@@ -31,10 +29,10 @@ def test_create():
     assert get_fpaths(info) == get_fpaths(expected_info)
 
 
-def test_getters_simple():
-    t = Torrent.from_file(FPATH_TORRENT_SIMPLE)
+def test_getters_simple(torr_test_file):
+    t = Torrent.from_file(torr_test_file)
 
-    assert t._filepath == FPATH_TORRENT_SIMPLE
+    assert t._filepath == torr_test_file
 
     assert t.created_by == 'Transmission/2.84 (14307)'
 
@@ -58,10 +56,10 @@ def test_getters_simple():
     assert 'magnet:' in magnet
 
 
-def test_getters_dir():
-    t = Torrent.from_file(FPATH_TORRENT_WITH_DIR)
+def test_getters_dir(torr_test_dir):
+    t = Torrent.from_file(torr_test_dir)
 
-    assert t._filepath == FPATH_TORRENT_WITH_DIR
+    assert t._filepath == torr_test_dir
 
     assert t.created_by == 'Transmission/2.84 (14307)'
     assert t.files == [
@@ -185,13 +183,13 @@ def test_from_string():
     assert t._struct == 'spam'
 
 
-def test_to_file():
+def test_to_file(torr_test_file):
     t0 = Torrent({})
 
     with pytest.raises(TorrentError):
         t0.to_file()
 
-    t1 = Torrent.from_file(FPATH_TORRENT_SIMPLE)
+    t1 = Torrent.from_file(torr_test_file)
     fpath = join(mkdtemp(), str(uuid4()))
     t1.to_file(fpath)
 
@@ -199,9 +197,9 @@ def test_to_file():
     assert t1._struct == t2._struct
 
 
-def test_str():
+def test_str(torr_test_file):
     """ Tests Torrent.__str__ method """
-    t = Torrent.from_file(FPATH_TORRENT_SIMPLE)
+    t = Torrent.from_file(torr_test_file)
     assert str(t) == 'Torrent: root.txt'
 
     t.name = 'Мой торрент'
