@@ -338,19 +338,20 @@ class Torrent:
 
         target_files, size_data = cls._get_target_files_info(src_path)
 
-        SIZE_MIN = 32768  # 32 KiB
-        SIZE_DEFAULT = 262144  # 256 KiB
-        SIZE_MAX = 1048576  # 1 MiB
+        size_min = 32768  # 32 KiB
+        size_default = 262144  # 256 KiB
+        size_max = 1048576  # 1 MiB
 
-        CHUNKS_MIN = 1000  # todo use those limits as advised
-        CHUNKS_MAX = 2200
+        # todo use those limits as advised
+        # chunks_min = 1000
+        # chunks_max = 2200
 
-        size_piece = SIZE_MIN
-        if size_data > SIZE_MIN:
-            size_piece = SIZE_DEFAULT
+        size_piece = size_min
+        if size_data > size_min:
+            size_piece = size_default
 
-        if size_piece > SIZE_MAX:
-            size_piece = SIZE_MAX
+        if size_piece > size_max:
+            size_piece = size_max
 
         def read(filepath):
             with open(filepath, 'rb') as f:
