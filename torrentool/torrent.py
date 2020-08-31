@@ -15,8 +15,21 @@ from .utils import get_app_version
 
 _ITERABLE_TYPES = (list, tuple, set)
 
-
 TorrentFile = namedtuple('TorrentFile', ['name', 'length'])
+
+# path size in MiB (upper bound) : piece length
+PIECE_LENGTHS = {
+    50: 32,  # path size [0 - 50) MiB --> 32 kiB piece size
+    150: 64,  # path size [50 - 150) MiB --> 64 kiB piece size
+    350: 128,  # 128 kiB piece size
+    500: 256,  # 256 kiB piece size
+    1000: 512,  # 512 kiB piece size
+    2000: 1024,  # 1024 kiB piece size
+    4000: 2048,  # 2048 kiB piece size
+    8000: 4096,  # 4096 kiB piece size
+    16000: 8192,  # 8192 kiB piece size
+    16001: 16384  # 16384 kiB piece size
+}
 
 
 class Torrent:
@@ -298,6 +311,13 @@ class Torrent:
         """Returns bytes representing torrent file."""
         return Bencode.encode(self._struct)
 
+    def get_piece_size(self, size_data):
+        size_data_mb = size_data * 1024 * 1024
+        for size_mb in PIECE_LENGTHS:
+            if size_data_mb < size_mb:
+                return PIECE_LENGTHS[size_mb] * 1024
+        return PIECE_LENGTHS[16001] * 1024
+
     @classmethod
     def _get_target_files_info(cls, src_path: Path) -> Tuple[List[Tuple[str, int, List[str]]], int]:
         is_dir = src_path.is_dir()
@@ -346,12 +366,7 @@ class Torrent:
         # chunks_min = 1000
         # chunks_max = 2200
 
-        size_piece = size_min
-        if size_data > size_min:
-            size_piece = size_default
-
-        if size_piece > size_max:
-            size_piece = size_max
+        size_piece = self.get_piece_size(size_data)
 
         def read(filepath):
             with open(filepath, 'rb') as f:
