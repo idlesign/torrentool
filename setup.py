@@ -5,8 +5,6 @@ from torrentool import VERSION
 
 
 PATH_BASE = os.path.dirname(__file__)
-PATH_BIN = os.path.join(PATH_BASE, 'bin')
-
 PYTEST_RUNNER = ['pytest-runner'] if 'test' in sys.argv else []
 
 f = open(os.path.join(PATH_BASE, 'README.rst'))
