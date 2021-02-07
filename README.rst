@@ -2,12 +2,6 @@ torrentool
 ==========
 https://github.com/idlesign/torrentool
 
-.. image:: https://idlesign.github.io/lbc/py2-lbc.svg
-   :target: https://idlesign.github.io/lbc/
-   :alt: LBC Python 2
-
-----
-
 .. image:: https://img.shields.io/pypi/v/torrentool.svg
     :target: https://pypi.python.org/pypi/torrentool
 
