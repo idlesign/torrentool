@@ -2,6 +2,11 @@ torrentool changelog
 ====================
 
 
+Unreleased
+----------
+* Better handling for bogus string encodings in .torrent files (see #2).
+
+
 v1.1.0 [2020-06-19]
 -------------------
 ! Dropped support for Python 2 and 3.5.

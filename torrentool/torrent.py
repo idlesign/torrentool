@@ -1,12 +1,11 @@
 from calendar import timegm
-from collections import namedtuple
 from datetime import datetime
 from functools import reduce
 from hashlib import sha1
 from os import walk, sep
 from os.path import join, getsize, normpath
 from pathlib import Path
-from typing import List, Union, Optional, Tuple
+from typing import List, Union, Optional, Tuple, NamedTuple
 from urllib.parse import urlencode
 
 from .bencode import Bencode
@@ -16,7 +15,11 @@ from .utils import get_app_version
 _ITERABLE_TYPES = (list, tuple, set)
 
 
-TorrentFile = namedtuple('TorrentFile', ['name', 'length'])
+class TorrentFile(NamedTuple):
+    """Represents a file in torrent."""
+
+    name: str
+    length: int
 
 
 class Torrent:
@@ -229,7 +232,7 @@ class Torrent:
         """Returns torrent magnet link, consisting of BTIH (BitTorrent Info Hash) URN
         anr optional other information.
 
-        :param bool|list|tuple|set detailed:
+        :param detailed:
             For boolean - whether additional info (such as trackers) should be included.
             For iterable - expected allowed parameter names:
                 tr - trackers
@@ -412,7 +415,7 @@ class Torrent:
         :param string:
 
         """
-        return cls(Bencode.read_string(string))
+        return cls(Bencode.read_string(string, byte_keys={'pieces'}))
 
     @classmethod
     def from_file(cls, filepath: Union[str, Path]) -> 'Torrent':
@@ -424,6 +427,6 @@ class Torrent:
         if isinstance(filepath, str):
             filepath = Path(filepath)
 
-        torrent = cls(Bencode.read_file(filepath))
+        torrent = cls(Bencode.read_file(filepath, byte_keys={'pieces'}))
         torrent._filepath = filepath
         return torrent

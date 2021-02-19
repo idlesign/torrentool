@@ -15,6 +15,13 @@ def read_file(filepath):
     return contents
 
 
+def test_non_utf_string():
+    bogus = b'32:J\xf3ban Rosszban [2005] Bor\xedt\xf3.jpg'
+
+    assert decode(bogus) == bogus[3:]
+    assert decode(bogus, byte_keys={'some'}) == 'J�ban Rosszban [2005] Bor�t�.jpg'
+
+
 def test_read_file_dir(torr_test_dir, struct_torr_dir):
     decoded = Bencode.read_file(torr_test_dir)
     assert decoded == struct_torr_dir

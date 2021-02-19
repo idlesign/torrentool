@@ -1,7 +1,7 @@
 from codecs import encode
 from operator import itemgetter
 from pathlib import Path
-from typing import Union, Tuple
+from typing import Union, Tuple, Set
 
 from .exceptions import BencodeDecodingError, BencodeEncodingError
 
@@ -21,12 +21,7 @@ class Bencode:
         val_encoding = 'utf-8'
 
         def encode_str(v: str) -> bytes:
-            try:
-                v_enc = encode(v, val_encoding)
-
-            except UnicodeDecodeError:
-                raise
-
+            v_enc = encode(v, val_encoding)
             prefix = encode(f'{len(v_enc)}:', val_encoding)
             return prefix + v_enc
 
@@ -64,12 +59,15 @@ class Bencode:
         return encode_(value)
 
     @classmethod
-    def decode(cls, encoded: bytes) -> TypeEncodable:
+    def decode(cls, encoded: bytes, *, byte_keys: Set[str] = None) -> TypeEncodable:
         """Decodes bencoded data introduced as bytes.
 
         Returns decoded structure(s).
 
         :param encoded:
+
+        :param byte_keys: Keys values for which should be treated
+            as bytes (as opposed to UTF-8 strings).
 
         """
         def create_dict(items) -> dict:
@@ -143,8 +141,20 @@ class Bencode:
                     string = string.decode()
 
                 except UnicodeDecodeError:
-                    # Considered bytestring (e.g. `pieces` hashes concatenation).
-                    pass
+
+                    if stack_items:
+                        latest_stack_item = stack_items[-1]
+                    else:
+                        latest_stack_item = None
+
+                    if byte_keys is None or str(latest_stack_item) in byte_keys:
+                        # Considered to be a bytestring (e.g. `pieces` hashes concatenation).
+                        pass
+
+                    else:
+                        # Try to decode from UTF-8 with fallback to replace
+                        # for non-standard .torrent files.
+                        string = string.decode(errors='replace')
 
                 stack_items.append(string)
                 encoded = encoded[last_char_idx:]
@@ -162,29 +172,35 @@ class Bencode:
         return stack_items
 
     @classmethod
-    def read_string(cls, string: str) -> TypeEncodable:
+    def read_string(cls, string: Union[str, bytes], *, byte_keys: Set[str] = None) -> TypeEncodable:
         """Decodes a given bencoded string or bytestring.
 
         Returns decoded structure(s).
 
         :param string:
 
+        :param byte_keys: Keys values for which should be treated
+            as bytes (as opposed to UTF-8 strings).
+
         """
         if not isinstance(string, (bytes, bytearray)):
             string = string.encode()
 
-        return cls.decode(string)
+        return cls.decode(string, byte_keys=byte_keys)
 
     @classmethod
-    def read_file(cls, filepath: Union[str, Path]) -> TypeEncodable:
+    def read_file(cls, filepath: Union[str, Path], *, byte_keys: Set[str] = None) -> TypeEncodable:
         """Decodes bencoded data of a given file.
 
         Returns decoded structure(s).
 
         :param filepath:
 
+        :param byte_keys: Keys values for which should be treated
+            as bytes (as opposed to UTF-8 strings).
+
         """
         with open(str(filepath), mode='rb') as f:
             contents = f.read()
 
-        return cls.decode(contents)
+        return cls.decode(contents, byte_keys=byte_keys)
