@@ -2,8 +2,8 @@ torrentool changelog
 ====================
 
 
-Unreleased
-----------
+v1.1.1 [2021-02-20]
+-------------------
 * Better handling for bogus string encodings in .torrent files (see #2).
 
 
