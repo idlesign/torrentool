@@ -28,6 +28,7 @@ setup(
     zip_safe=False,
 
     install_requires=[],
+    extras_require={'cli': ['click']},
     setup_requires=[] + PYTEST_RUNNER,
     tests_require=[
         'pytest',
