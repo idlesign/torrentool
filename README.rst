@@ -11,22 +11,21 @@ https://github.com/idlesign/torrentool
 .. image:: https://img.shields.io/coveralls/idlesign/torrentool/master.svg
     :target: https://coveralls.io/r/idlesign/torrentool
 
-.. image:: https://img.shields.io/travis/idlesign/torrentool/master.svg
-    :target: https://travis-ci.org/idlesign/torrentool
-
 
 Description
 -----------
 
 *The tool to work with torrent files.*
 
-Works on Python 3.6+.
+Works on Python 3.7+.
 
 Includes:
 
-* Command line interface (requires ``click`` package to be installed)
-* Torrent utils (file creation, read and modification)
-* Bencoding utils (decoder, encoder)
+* Command line interface. Requires ``click`` package to be installed.
+
+  Use ``pip install torrentool[cli]`` to install this dependency automatically.
+* Torrent utils (file creation, read and modification).
+* Bencoding utils (decoder, encoder).
 
 
 Using CLI
