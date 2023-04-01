@@ -160,7 +160,14 @@ class Bencode:
                 encoded = encoded[last_char_idx:]
 
             elif char == 'e':  # End of a dictionary or a list.
-                compress_stack()
+                try:
+                    compress_stack()
+
+                except IndexError as e:
+                    raise BencodeDecodingError(
+                        f'Unable to parse the rest of the data: "{encoded.decode(errors="replace")[:60]}"'
+                    ) from e
+
                 encoded = encoded[1:]
 
             else:

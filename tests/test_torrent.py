@@ -6,7 +6,7 @@ from uuid import uuid4
 import pytest
 
 from torrentool.api import Torrent
-from torrentool.exceptions import TorrentError
+from torrentool.exceptions import TorrentError, BencodeDecodingError
 
 
 def test_create(datafix_dir, struct_torr_dir, struct_torr_file):
@@ -181,6 +181,17 @@ def test_from_string():
     torrstr = '4:spam'
     t = Torrent.from_string(torrstr)
     assert t._struct == 'spam'
+
+
+def test_bogus():
+
+    with pytest.raises(BencodeDecodingError) as e:
+        Torrent.from_string('4:spambogus: ending')
+    assert 'Unable to interpret `b` char.' in f'{e.value}'
+
+    with pytest.raises(BencodeDecodingError) as e:
+        Torrent.from_string('4:spamebogus: ending')
+    assert 'the rest of the data: "ebogus: ending"' in f'{e.value}'
 
 
 def test_to_file(torr_test_file):
