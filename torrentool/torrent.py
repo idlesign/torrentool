@@ -176,7 +176,16 @@ class Torrent:
     @comment.setter
     def comment(self, val: str):
         self._struct['comment'] = val
+    
+    @property
+    def source(self) -> Optional[str]:
+        """Optional. Often used by private trackers to create a unique infohash to prevent peer-leak."""
+        return self._struct.get('info').get("source")
 
+    @source.setter
+    def source(self, val: str):
+        self._struct['info']['source'] = val
+    
     @property
     def creation_date(self) -> Optional[datetime]:
         """Optional. The creation time of the torrent, in standard UNIX epoch format. UTC."""
