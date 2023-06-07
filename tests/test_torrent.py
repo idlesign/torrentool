@@ -72,8 +72,8 @@ def test_getters_dir(torr_test_dir):
     assert t.announce_urls == [['http://track1.org/1/', 'http://track2.org/2/']]
     assert t.creation_date.isoformat() == '2015-10-25T09:42:04'
     assert t.comment == 'примечание'
-
-    hash_expected = 'c815be93f20bf8b12fed14bee35c14b19b1d1984'
+    assert t.source == 'GIT'
+    hash_expected = '669e5c550e4681d00239c5bdc4344e038f1f5c0e'
     assert t.info_hash == hash_expected
 
     magnet = t.magnet_link
@@ -83,7 +83,7 @@ def test_getters_dir(torr_test_dir):
 
     magnet = t.get_magnet(detailed=True)
     assert (
-        magnet == 'magnet:?xt=urn:btih:c815be93f20bf8b12fed14bee35c14b19b1d1984'
+        magnet == 'magnet:?xt=urn:btih:669e5c550e4681d00239c5bdc4344e038f1f5c0e'
                   '&tr=http%3A%2F%2Ftrack1.org%2F1%2F&tr=http%3A%2F%2Ftrack2.org%2F2%2F'
     )
 
@@ -104,6 +104,9 @@ def test_setters():
 
     t.comment = 'mycomment'
     assert t.comment == 'mycomment'
+
+    t.source = 'GIT'
+    assert t.source == 'GIT'
 
     t.created_by = 'some/1.0'
     assert t.created_by == 'some/1.0'
