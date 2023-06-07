@@ -46,7 +46,7 @@ def test_getters_simple(torr_test_file):
     assert t.announce_urls == [['udp://123.123.123.123']]
     assert t.creation_date.isoformat() == '2015-10-21T17:40:05'
     assert t.comment is None
-
+    assert t.source is None
     hash_expected = '238967c8417cc6ccc378df16687d1958277f270b'
     assert t.info_hash == hash_expected
 
@@ -93,6 +93,7 @@ def test_setters():
 
     assert t.info_hash is None
     assert t.comment is None
+    assert t.source is None
     assert t.created_by is None
     assert t.creation_date is None
     assert t.total_size == 0
