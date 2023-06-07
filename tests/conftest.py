@@ -33,6 +33,7 @@ def struct_torr_dir():
             'piece length': 32768,
             'pieces': b'?\x9ew\xc1A\x84\x8d\x8b\xb7\x91\x19\xe3(\x1e\x1ex\x1e\xde\xa8\xdc',
             'private': 0,
+            'source': 'GIT'
         }
     }
 
