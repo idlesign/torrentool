@@ -2,8 +2,8 @@ torrentool changelog
 ====================
 
 
-Unreleased
-----------
+v1.2.0 [2023-06-08]
+-------------------
 + Add 'source' property for Torrent (see #27).
 
 
