@@ -1,5 +1,6 @@
 from datetime import datetime
-from os.path import normpath, join
+from os.path import normpath
+from pathlib import Path
 from tempfile import mkdtemp
 from uuid import uuid4
 
@@ -205,7 +206,7 @@ def test_to_file(torr_test_file):
         t0.to_file()
 
     t1 = Torrent.from_file(torr_test_file)
-    fpath = join(mkdtemp(), str(uuid4()))
+    fpath = str(Path(mkdtemp()) / str(uuid4()))
     t1.to_file(fpath)
 
     t2 = Torrent.from_file(fpath)

@@ -1,0 +1,63 @@
+target-version = "py310"
+line-length = 120
+extend-exclude = [
+    "migrations",
+]
+
+[format]
+quote-style = "single"
+exclude = []
+
+[lint]
+select = [
+    "B",  # possible bugs
+    "BLE",  # broad exception
+    "C4",  # comprehensions
+    "DTZ",  # work with datetimes
+    "E",  # code style
+    "ERA",  # commented code
+    "EXE",  # check executables
+    "F",  # misc
+    "FA",  # future annotations
+    "FBT",  # booleans
+    "FURB",  # modernizing
+    "G",  # logging format
+    "I",  # imports
+    "ICN",  # import conventions
+    "INT",  # i18n
+    "ISC",  # string concat
+    "PERF",  # performance
+    "PIE",  # misc
+    "PLC",  # misc
+    "PLE",  # misc errors
+    "PT",  # pytest
+    "PTH",  # pathlib
+    "PYI",  # typing
+    "RSE",  # exception raising
+    "RUF",  # misc
+    "SLOT",  # slots related
+    "TC",  # typing
+    "UP",  # Python upgrades
+]
+
+ignore = [
+    "DTZ003",
+    "DTZ004",
+    "DTZ005",
+    "F401",
+    "FBT001",
+    "FBT002",
+    "I001",
+    "RUF013",
+    "UP006",
+    "UP007",
+    "UP035",
+]
+
+[lint.extend-per-file-ignores]
+"src/torrentool/bencode.py" = [
+    "B007",
+]
+"src/torrentool/utils.py" = [
+    "PLC0415",
+]

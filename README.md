@@ -1,71 +1,60 @@
-torrentool
-==========
-https://github.com/idlesign/torrentool
+# torrentool
 
-.. image:: https://img.shields.io/pypi/v/torrentool.svg
-    :target: https://pypi.python.org/pypi/torrentool
+<https://github.com/idlesign/torrentool>
 
-.. image:: https://img.shields.io/pypi/l/torrentool.svg
-    :target: https://pypi.python.org/pypi/torrentool
+[![release](https://img.shields.io/pypi/v/torrentool.svg)](https://pypi.python.org/pypi/torrentool)
+[![lic](https://img.shields.io/pypi/l/torrentool.svg)](https://pypi.python.org/pypi/torrentool)
+[![coverage](https://img.shields.io/coveralls/idlesign/torrentool/master.svg)](https://coveralls.io/r/idlesign/torrentool)
 
-.. image:: https://img.shields.io/coveralls/idlesign/torrentool/master.svg
-    :target: https://coveralls.io/r/idlesign/torrentool
-
-
-Description
------------
+## Description
 
 *The tool to work with torrent files.*
 
-Works on Python 3.7+.
+Works on Python 3.10+.
 
 Includes:
 
-* Command line interface. Requires ``click`` package to be installed.
+* Command line interface. Requires `click` package to be installed.
 
-  Use ``pip install torrentool[cli]`` to install this dependency automatically.
+  Use `pip install torrentool[cli]` to install this dependency automatically.
 * Torrent utils (file creation, read and modification).
 * Bencoding utils (decoder, encoder).
 
+## Using CLI
 
-Using CLI
-~~~~~~~~~
+```shell
+# Make .torrent out of `video.mkv`
+$ torrentool torrent create /home/my/files_here/video.mkv
 
-.. code-block:: bash
+# Make .torrent out of entire `/home/my/files_here` dir,
+# and put some open trackers announce URLs into it,
+# and publish file on torrent caching service, so it is ready to share.
+$ torrentool torrent create /home/my/files_here --open_trackers --cache
 
-    ; Make .torrent out of `video.mkv`
-    $ torrentool torrent create /home/my/files_here/video.mkv
+# Print out existing file info.
+$ torrentool torrent info /home/my/some.torrent
+```
 
-    ; Make .torrent out of entire `/home/my/files_here` dir,
-    ; and put some open trackers announce URLs into it,
-    ; and publish file on torrent caching service, so it is ready to share.
-    $ torrentool torrent create /home/my/files_here --open_trackers --cache
+Use command line `--help` switch to know more.
 
-    ; Print out existing file info.
-    $ torrentool torrent info /home/my/some.torrent
+!!! note
 
+    Some commands require `requests` package to be installed.
 
-Use command line ``--help`` switch to know more.
+## From your Python code
 
-.. note:: Some commands require ``requests`` package to be installed.
+```python
+from torrentool.api import Torrent
 
+# Reading and modifying an existing file.
+my_torrent = Torrent.from_file('/home/idle/some.torrent')
+my_torrent.total_size  # Total files size in bytes.
+my_torrent.magnet_link  # Magnet link for you.
+my_torrent.comment = 'Your torrents are mine.'  # Set a comment.
+my_torrent.to_file()  # Save changes.
 
-From your Python code
-~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-    from torrentool.api import Torrent
-
-    # Reading and modifying an existing file.
-    my_torrent = Torrent.from_file('/home/idle/some.torrent')
-    my_torrent.total_size  # Total files size in bytes.
-    my_torrent.magnet_link  # Magnet link for you.
-    my_torrent.comment = 'Your torrents are mine.'  # Set a comment.
-    my_torrent.to_file()  # Save changes.
-
-    # Or we can create a new torrent from a directory.
-    new_torrent = Torrent.create_from('/home/idle/my_stuff/')  # or it could have been a single file
-    new_torrent.announce_urls = 'udp://tracker.openbittorrent.com:80'
-    new_torrent.to_file('/home/idle/another.torrent')
-
+# Or we can create a new torrent from a directory.
+new_torrent = Torrent.create_from('/home/idle/my_stuff/')  # or it could have been a single file
+new_torrent.announce_urls = 'udp://tracker.openbittorrent.com:80'
+new_torrent.to_file('/home/idle/another.torrent')
+```

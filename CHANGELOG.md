@@ -1,67 +1,46 @@
-torrentool changelog
-====================
+# torrentool changelog
 
+### v1.2.0 [2023-06-08]
+* ++ Add 'source' property for Torrent (see #27).
 
-v1.2.0 [2023-06-08]
--------------------
-+ Add 'source' property for Torrent (see #27).
+### v1.1.1 [2021-02-20]
+* ** Better handling for bogus string encodings in .torrent files (see #2).
 
+### v1.1.0 [2020-06-19]
+* !! Dropped support for Python 2 and 3.5.
+* ++ Added support for pathlib.Path.
+* ** More proper error message when trying to add an empty file (#11).
 
-v1.1.1 [2021-02-20]
--------------------
-* Better handling for bogus string encodings in .torrent files (see #2).
+### v1.0.2
+* ** CLI. Fixed 'torrent create' command run without 'dest' argument.
 
+### v1.0.1
+* !! Dropped QA for Python 2.
+* ** Torrent.files now returns a list of named tuples for convenience (closes #9).
 
-v1.1.0 [2020-06-19]
--------------------
-! Dropped support for Python 2 and 3.5.
-+ Added support for pathlib.Path.
-* More proper error message when trying to add an empty file (#11).
+### v1.0.0
+* !! Dropped QA for Python 3.3 and 3.4.
+* ** No functional changes. Celebrating 1.0.0.
 
+### v0.4.0
+* ++ Added Torrent.get_magnet().
+* ++ Added Torrent.webseeds (BEP-19).
+* ++ Added Torrent.httpseeds (BEP-17).
+* ++ CLI: Added `torrent info` command.
+* ++ CLI: Windows compatibility improved (see #6)
+* ** Bencode.read_string() now accepts binary data.
 
-v1.0.2
-------
-* CLI. Fixed 'torrent create' command run without 'dest' argument.
+### v0.3.0
+* ++ Added CLI: torrent create (including open trackers and cachers support).
+* ++ Added Torrent `name` attr and string representation.
+* ** IMPORTANT: Fixed dictionaries bencoding (i.e. wrong .info_hash).
+* ** Fixed filename encoding on Py2.
 
-
-v1.0.1
-------
-! Dropped QA for Python 2.
-* Torrent.files now returns a list of named tuples for convenience (closes #9).
-
-
-v1.0.0
-------
-! Dropped QA for Python 3.3 and 3.4.
-* No functional changes. Celebrating 1.0.0.
-
-
-v0.4.0
-------
-+ Added Torrent.get_magnet().
-+ Added Torrent.webseeds (BEP-19).
-+ Added Torrent.httpseeds (BEP-17).
-+ CLI: Added `torrent info` command.
-+ CLI: Windows compatibility improved (see #6)
-* Bencode.read_string() now accepts binary data.
-
-
-v0.3.0
-------
-+ Added CLI: torrent create (including open trackers and cachers support).
-+ Added Torrent `name` attr and string representation.
-* IMPORTANT: Fixed dictionaries bencoding (i.e. wrong .info_hash).
-* Fixed filename encoding on Py2.
-
-
-v0.2.0
-------
-+ Implemented Torrent.create_from()
-+ Implemented Torrent.private getter/setter
-* Fixed encoding error for non-ascii strings.
+### v0.2.0
+* ++ Implemented Torrent.create_from()
+* ++ Implemented Torrent.private getter/setter
+* ** Fixed encoding error for non-ascii strings.
 - Removed encoding params from encode methods.
 
-
-v0.1.0
-------
-+ Basic functionality.
+### v0.1.0
+* ++ Basic functionality.

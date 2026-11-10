@@ -1,5 +1,5 @@
 import math
-from os import path
+from pathlib import Path
 from typing import List
 
 from .exceptions import RemoteUploadError, RemoteDownloadError
@@ -14,8 +14,8 @@ def get_app_version() -> str:
     suitable for putting into Torrent.created_by.
 
     """
-    from torrentool import VERSION_STR
-    return f'torrentool/{VERSION_STR}'
+    from torrentool import VERSION
+    return f'torrentool/{VERSION}'
 
 
 def humanize_filesize(bytes_size: int) -> str:
@@ -29,7 +29,7 @@ def humanize_filesize(bytes_size: int) -> str:
     
     names = ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
 
-    name_idx = int(math.floor(math.log(bytes_size, 1024)))
+    name_idx = math.floor(math.log(bytes_size, 1024))
     size = round(bytes_size / math.pow(1024, name_idx), 2)
 
     return f'{size} {names[name_idx]}'
@@ -50,7 +50,7 @@ def upload_to_cache_server(fpath: str) -> str:
     try:
         import requests
 
-        response = requests.post(url_upload, files={file_field: open(fpath, 'rb')}, timeout=REMOTE_TIMEOUT)
+        response = requests.post(url_upload, files={file_field: Path(fpath).open('rb')}, timeout=REMOTE_TIMEOUT)
         response.raise_for_status()
 
         info_cache = response.text
@@ -58,8 +58,7 @@ def upload_to_cache_server(fpath: str) -> str:
 
     except (ImportError, requests.RequestException) as e:
 
-        # Now trace is lost. `raise from` to consider.
-        raise RemoteUploadError(f'Unable to upload to {url_upload}: {e}')
+        raise RemoteUploadError(f'Unable to upload to {url_upload}: {e}') from e
 
 
 def get_open_trackers_from_remote() -> List[str]:
@@ -78,8 +77,7 @@ def get_open_trackers_from_remote() -> List[str]:
 
     except (ImportError, requests.RequestException) as e:
 
-        # Now trace is lost. `raise from` to consider.
-        raise RemoteDownloadError(f'Unable to download from {url}: {e}')
+        raise RemoteDownloadError(f'Unable to download from {url}: {e}') from e
 
     return open_trackers
 
@@ -87,7 +85,7 @@ def get_open_trackers_from_remote() -> List[str]:
 def get_open_trackers_from_local() -> List[str]:
     """Returns open trackers announce URLs list from local backup."""
 
-    with open(path.join(path.dirname(__file__), 'repo', OPEN_TRACKERS_FILENAME)) as f:
+    with (Path(__file__).parent / 'repo' / OPEN_TRACKERS_FILENAME).open() as f:
         open_trackers = map(str.strip, f.readlines())
 
     return list(open_trackers)

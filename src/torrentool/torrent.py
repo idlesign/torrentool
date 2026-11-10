@@ -3,9 +3,9 @@ from datetime import datetime
 from functools import reduce
 from hashlib import sha1
 from os import walk, sep
-from os.path import join, getsize, normpath
+from os.path import normpath
 from pathlib import Path
-from typing import List, Union, Optional, Tuple, NamedTuple
+from typing import List, Union, Tuple, NamedTuple
 from urllib.parse import urlencode
 
 from .bencode import Bencode
@@ -25,10 +25,10 @@ class TorrentFile(NamedTuple):
 class Torrent:
     """Represents a torrent file, and exposes utilities to work with it."""
 
-    def __init__(self, dict_struct: dict = None):
+    def __init__(self, dict_struct: dict | None = None):
         dict_struct: dict = dict_struct or {'info': {}}
         self._struct = dict_struct
-        self._filepath: Optional[Path] = None
+        self._filepath: Path | None = None
 
     def __str__(self):
         return f'Torrent: {self.name}'
@@ -95,8 +95,10 @@ class Torrent:
         if 'files' in info:
             base = info['name']
 
-            for f in info['files']:
-                files.append(TorrentFile(join(base, *f['path']), f['length']))
+            files.extend(
+                TorrentFile(str(Path(base).joinpath(*file_entry['path'])), file_entry['length'])
+                for file_entry in info['files']
+            )
 
         else:
             files.append(TorrentFile(info['name'], info['length']))
@@ -109,7 +111,7 @@ class Torrent:
         return reduce(lambda prev, curr: prev + curr[1], self.files, 0)
 
     @property
-    def info_hash(self) -> Optional[str]:
+    def info_hash(self) -> str | None:
         """Hash of torrent file info section. Also known as torrent hash."""
         info = self._struct.get('info')
 
@@ -124,7 +126,7 @@ class Torrent:
         return self.get_magnet(detailed=False)
 
     @property
-    def announce_urls(self) -> Optional[List[List[str]]]:
+    def announce_urls(self) -> List[List[str]] | None:
         """List of lists of announce (tracker) URLs.
 
         First inner list is considered as primary announcers list,
@@ -169,7 +171,7 @@ class Torrent:
             set_single(val)
 
     @property
-    def comment(self) -> Optional[str]:
+    def comment(self) -> str | None:
         """Optional. Free-form textual comments of the author."""
         return self._struct.get('comment')
 
@@ -178,7 +180,7 @@ class Torrent:
         self._struct['comment'] = val
     
     @property
-    def source(self) -> Optional[str]:
+    def source(self) -> str | None:
         """Optional. Often used by private trackers to create a unique infohash to prevent peer-leak."""
         return self._struct.get('info').get("source")
 
@@ -187,7 +189,7 @@ class Torrent:
         self._struct['info']['source'] = val
     
     @property
-    def creation_date(self) -> Optional[datetime]:
+    def creation_date(self) -> datetime | None:
         """Optional. The creation time of the torrent, in standard UNIX epoch format. UTC."""
 
         date = self._struct.get('creation date')
@@ -201,7 +203,7 @@ class Torrent:
         self._struct['creation date'] = timegm(val.timetuple())
 
     @property
-    def created_by(self) -> Optional[str]:
+    def created_by(self) -> str | None:
         """Optional. Name and version of the program used to create the .torrent"""
         return self._struct.get('created by')
 
@@ -229,7 +231,7 @@ class Torrent:
             self._struct['info']['private'] = 1
 
     @property
-    def name(self) -> Optional[str]:
+    def name(self) -> str | None:
         """Torrent name (title)."""
         return self._struct.get('info', {}).get('name', None)
 
@@ -255,11 +257,8 @@ class Torrent:
             if not urls:
                 return
 
-            trackers = []
-
             urls = urls[0]  # Only primary announcers are enough.
-            for url in urls:
-                trackers.append(('tr', url))
+            trackers = [('tr', url) for url in urls]
 
             if trackers:
                 return urlencode(trackers)
@@ -291,7 +290,7 @@ class Torrent:
 
         return result
 
-    def to_file(self, filepath: str = None):
+    def to_file(self, filepath: str | Path | None = None):
         """Writes Torrent object into file, either
 
         :param filepath:
@@ -303,7 +302,7 @@ class Torrent:
         if filepath is not None:
             self._filepath = filepath
 
-        with open(self._filepath, mode='wb') as f:
+        with Path(self._filepath).open(mode='wb') as f:
             f.write(self.to_string())
 
     def to_string(self) -> bytes:
@@ -319,7 +318,7 @@ class Torrent:
 
         if is_dir:
             for base, _, files in walk(src_path):
-                target_files.extend([join(base, fname) for fname in sorted(files)])
+                target_files.extend(str(Path(base) / fname) for fname in sorted(files))
 
         else:
             target_files.append(src_path)
@@ -328,12 +327,12 @@ class Torrent:
         total_size = 0
 
         for fpath in target_files:
-            file_size = getsize(fpath)
+            file_size = Path(fpath).stat().st_size
 
             if not file_size:
                 continue
 
-            target_files_.append((fpath, file_size, normpath(fpath.replace(src_path, '')).strip(sep).split(sep)))
+            target_files_.append((fpath, file_size, list(Path(normpath(fpath.replace(src_path, '')).strip(sep)).parts)))
             total_size += file_size
 
         return target_files_, total_size
@@ -355,8 +354,6 @@ class Torrent:
         size_max = 1048576  # 1 MiB
 
         # todo use those limits as advised
-        # chunks_min = 1000
-        # chunks_max = 2200
 
         size_piece = size_min
         if size_data > size_min:
@@ -366,7 +363,7 @@ class Torrent:
             size_piece = size_max
 
         def read(filepath):
-            with open(filepath, 'rb') as f:
+            with Path(filepath).open('rb') as f:
                 while True:
                     chunk = f.read(size_piece - len(pieces_buffer))
                     chunk_size = len(chunk)
@@ -385,7 +382,7 @@ class Torrent:
                     pieces += sha1(pieces_buffer).digest()[:20]
                     pieces_buffer = bytearray()
 
-        if len(pieces_buffer):
+        if pieces_buffer:
             pieces += sha1(pieces_buffer).digest()[:20]
             pieces_buffer = bytearray()
 
@@ -409,7 +406,7 @@ class Torrent:
 
             except IndexError:
                 # Since empty files are skipped.
-                raise TorrentError('Unable to create torrent for an empty file.')
+                raise TorrentError('Unable to create torrent for an empty file.') from None
 
         torrent = cls({'info': info})
         torrent.created_by = get_app_version()

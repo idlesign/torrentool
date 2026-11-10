@@ -59,7 +59,7 @@ class Bencode:
         return encode_(value)
 
     @classmethod
-    def decode(cls, encoded: bytes, *, byte_keys: Set[str] = None) -> TypeEncodable:
+    def decode(cls, encoded: bytes, *, byte_keys: Set[str] | None = None) -> TypeEncodable:
         """Decodes bencoded data introduced as bytes.
 
         Returns decoded structure(s).
@@ -72,7 +72,7 @@ class Bencode:
         """
         def create_dict(items) -> dict:
             # Let's guarantee that dictionaries are sorted.
-            k_v_pair = zip(*[iter(items)] * 2)
+            k_v_pair = zip(*[iter(items)] * 2, strict=False)
             return dict(sorted(k_v_pair, key=itemgetter(0)))
 
         def create_list(items) -> list:
@@ -179,7 +179,7 @@ class Bencode:
         return stack_items
 
     @classmethod
-    def read_string(cls, string: Union[str, bytes], *, byte_keys: Set[str] = None) -> TypeEncodable:
+    def read_string(cls, string: Union[str, bytes], *, byte_keys: Set[str] | None = None) -> TypeEncodable:
         """Decodes a given bencoded string or bytestring.
 
         Returns decoded structure(s).
@@ -196,7 +196,7 @@ class Bencode:
         return cls.decode(string, byte_keys=byte_keys)
 
     @classmethod
-    def read_file(cls, filepath: Union[str, Path], *, byte_keys: Set[str] = None) -> TypeEncodable:
+    def read_file(cls, filepath: Union[str, Path], *, byte_keys: Set[str] | None = None) -> TypeEncodable:
         """Decodes bencoded data of a given file.
 
         Returns decoded structure(s).
@@ -207,7 +207,7 @@ class Bencode:
             as bytes (as opposed to UTF-8 strings).
 
         """
-        with open(str(filepath), mode='rb') as f:
+        with Path(str(filepath)).open(mode='rb') as f:
             contents = f.read()
 
         return cls.decode(contents, byte_keys=byte_keys)

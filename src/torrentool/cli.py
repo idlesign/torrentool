@@ -1,4 +1,5 @@
-from os import path, getcwd
+from os import getcwd
+from pathlib import Path
 
 import click
 
@@ -10,7 +11,7 @@ from .utils import humanize_filesize, upload_to_cache_server, get_open_trackers_
 
 
 @click.group()
-@click.version_option(version='.'.join(map(str, VERSION)))
+@click.version_option(version=VERSION)
 def start():
     """Torrentool command line utilities."""
 
@@ -41,7 +42,8 @@ def info(torrent_path):
 
 @torrent.command()
 @click.argument('source', type=click.Path(exists=True, writable=False))
-@click.option('--dest', default=getcwd, type=click.Path(file_okay=False), help='Destination path to put .torrent file into. Default: current directory.')
+@click.option('--dest', default=getcwd, type=click.Path(file_okay=False),
+              help='Destination path to put .torrent file into. Default: current directory.')
 @click.option('--tracker', default=None, help='Tracker announce URL (multiple comma-separated values supported).')
 @click.option('--open_trackers', default=False, is_flag=True, help='Add open trackers announce URLs.')
 @click.option('--comment', default=None, help='Arbitrary comment.')
@@ -49,8 +51,8 @@ def info(torrent_path):
 def create(source, dest, tracker, open_trackers, comment, cache):
     """Create torrent file from a single file or a directory."""
 
-    source_title = path.basename(source).replace('.', '_').replace(' ', '_')
-    dest = f'{path.join(dest, source_title)}.torrent'
+    source_title = Path(source).name.replace('.', '_').replace(' ', '_')
+    dest = f'{Path(dest) / source_title}.torrent'
 
     click.secho(f'Creating torrent from {source} ...')
 

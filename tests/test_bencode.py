@@ -1,16 +1,19 @@
+from pathlib import Path
+
 import pytest
 
 from torrentool.api import Bencode
 from torrentool.exceptions import BencodeDecodingError, BencodeEncodingError
 
-enc = lambda v: v.encode()
+def enc(v):
+    return v.encode()
 
 decode = Bencode.read_string
 encode = Bencode.encode
 
 
 def read_file(filepath):
-    with open(filepath, mode='rb') as f:
+    with Path(filepath).open(mode='rb') as f:
         contents = f.read()
     return contents
 
