@@ -3,6 +3,7 @@
 ### Unreleased
 * ++ CLI: added --color/--no-color option (close #32).
 * ** Open trackers list is now fetched from ngosang/trackerslist; the bundled list is refreshed (close #21).
+* ** Strings in non-UTF-8 encodings are now kept as bytes internally to preserve round-trip fidelity (info hash), and decoded with replacement at display level; byte_keys argument is obsolete (close #28).
 * ** Torrent.create_from now derives the piece size from the data size (Transmission-style, ~1024 pieces within 16 KiB..16 MiB) instead of a fixed 32/256 KiB choice (close #19).
 
 ### v1.2.0 [2023-06-08]
