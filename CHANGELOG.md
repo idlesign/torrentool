@@ -1,6 +1,7 @@
 # torrentool changelog
 
 ### Unreleased
+* ++ Added support for the encoding metainfo field: strings in the declared encoding (e.g. GBK) are now properly decoded for display (see #30).
 * ++ CLI: added --color/--no-color option (close #32).
 * ** Open trackers list is now fetched from ngosang/trackerslist; the bundled list is refreshed (close #21).
 * ** Strings in non-UTF-8 encodings are now kept as bytes internally to preserve round-trip fidelity (info hash), and decoded with replacement at display level; byte_keys argument is obsolete (close #28).
