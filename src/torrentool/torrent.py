@@ -2,6 +2,7 @@ from calendar import timegm
 from datetime import datetime
 from functools import reduce
 from hashlib import sha1
+from math import log2
 from os import walk, sep
 from os.path import normpath
 from pathlib import Path
@@ -349,18 +350,14 @@ class Torrent:
 
         target_files, size_data = cls._get_target_files_info(src_path)
 
-        size_min = 32768  # 32 KiB
-        size_default = 262144  # 256 KiB
-        size_max = 1048576  # 1 MiB
+        # Aim for approximately 1024 pieces, as Transmission does:
+        # the piece size grows with the data size within [16 KiB, 16 MiB].
+        if size_data:
+            exponent = min(max(log2(size_data) - 10, 14), 24)
+            size_piece = 1 << round(exponent)
 
-        # todo use those limits as advised
-
-        size_piece = size_min
-        if size_data > size_min:
-            size_piece = size_default
-
-        if size_piece > size_max:
-            size_piece = size_max
+        else:
+            size_piece = 16384  # 16 KiB
 
         def read(filepath):
             with Path(filepath).open('rb') as f:

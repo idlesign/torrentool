@@ -15,7 +15,10 @@ def test_create(datafix_dir, struct_torr_dir, struct_torr_file):
     t = Torrent.create_from(str(fp))
     t.private = True
 
-    assert t._struct['info'] == struct_torr_file['info']
+    # Piece size is now derived from the data size (Transmission-style),
+    # so it differs from the one in the fixture torrent.
+    expected_info = {**struct_torr_file['info'], 'piece length': 16384}
+    assert t._struct['info'] == expected_info
 
     # Note that STRUCT_TORRENT_WITH_DIR will probably
     # differ from struct created during this test (due to different file ordering - Transmission-torrentool),
@@ -28,6 +31,19 @@ def test_create(datafix_dir, struct_torr_dir, struct_torr_file):
         return {'|'.join(f['path']) for f in info['files']}
 
     assert get_fpaths(info) == get_fpaths(expected_info)
+
+
+@pytest.mark.parametrize(('size', 'expected'), [
+    (1, 16384),
+    (16777216, 16384),
+    (33554433, 32768),
+])
+def test_create_piece_size(tmp_path, size, expected):
+    fpath = tmp_path / 'big.bin'
+    fpath.write_bytes(b'\0' * size)
+    t = Torrent.create_from(fpath)
+
+    assert t._struct['info']['piece length'] == expected
 
 
 def test_getters_simple(torr_test_file):
