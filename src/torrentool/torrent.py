@@ -1,3 +1,4 @@
+from base64 import b32decode
 from calendar import timegm
 from datetime import datetime
 from functools import reduce
@@ -7,7 +8,7 @@ from os import walk, sep
 from os.path import normpath
 from pathlib import Path
 from typing import List, Union, Tuple, NamedTuple
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, urlencode, urlparse
 
 from .bencode import Bencode
 from .exceptions import TorrentError
@@ -32,6 +33,7 @@ class Torrent:
         dict_struct: dict = dict_struct or {'info': {}}
         self._struct = dict_struct
         self._filepath: Path | None = None
+        self._info_hash: str | None = None
 
     def __str__(self):
         return f'Torrent: {self.name}'
@@ -150,6 +152,9 @@ class Torrent:
     @property
     def info_hash(self) -> str | None:
         """Hash of torrent file info section. Also known as torrent hash."""
+        if self._info_hash:
+            return self._info_hash
+
         info = self._struct.get('info')
 
         if not info:
@@ -375,10 +380,13 @@ class Torrent:
         return target_files_, total_size
 
     @classmethod
-    def create_from(cls, src_path: Union[str, Path]) -> 'Torrent':
+    def create_from(cls, src_path: Union[str, Path], *, piece_size: int | None = None) -> 'Torrent':
         """Returns Torrent object created from a file or a directory.
 
         :param src_path:
+
+        :param piece_size: Piece size in bytes. If not set, the size is deduced
+            from the data size.
 
         """
         if isinstance(src_path, str):
@@ -386,9 +394,12 @@ class Torrent:
 
         target_files, size_data = cls._get_target_files_info(src_path)
 
-        # Aim for approximately 1024 pieces, as Transmission does:
-        # the piece size grows with the data size within [16 KiB, 16 MiB].
-        if size_data:
+        if piece_size is not None:
+            size_piece = piece_size
+
+        elif size_data:
+            # Aim for approximately 1024 pieces, as Transmission does:
+            # the piece size grows with the data size within [16 KiB, 16 MiB].
             exponent = min(max(log2(size_data) - 10, 14), 24)
             size_piece = 1 << round(exponent)
 
@@ -444,6 +455,45 @@ class Torrent:
         torrent = cls({'info': info})
         torrent.created_by = get_app_version()
         torrent.creation_date = datetime.utcnow()
+
+        return torrent
+
+    @classmethod
+    def from_magnet(cls, uri: str) -> 'Torrent':
+        """Alternative constructor to get a Torrent object from a magnet link.
+
+        Note: a full .torrent file cannot be reconstructed from a magnet link
+        without DHT (BEP5) and metadata exchange (BEP9), which are out of scope
+        of this library. Only basic data is available: info hash, name and
+        trackers (when supplied in the link).
+
+        :param uri: Magnet URI.
+
+        """
+        parsed = urlparse(uri)
+        params = parse_qs(parsed.query)
+
+        prefix = 'urn:btih:'
+        hash_str = params.get('xt', [''])[0]
+
+        if not hash_str.startswith(prefix):
+            raise TorrentError(f'Unsupported magnet link: {uri}')
+
+        hash_str = hash_str[len(prefix):]
+
+        if len(hash_str) == 32:  # base32-encoded hash
+            hash_str = b32decode(hash_str.upper()).hex()
+
+        torrent = cls()
+        torrent._info_hash = hash_str
+
+        name = params.get('dn')
+        if name:
+            torrent.name = name[0]
+
+        trackers = params.get('tr')
+        if trackers:
+            torrent.announce_urls = trackers
 
         return torrent
 

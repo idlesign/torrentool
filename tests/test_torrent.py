@@ -6,6 +6,8 @@ from uuid import uuid4
 
 import pytest
 
+from base64 import b32encode
+
 from torrentool.api import Torrent
 from torrentool.bencode import Bencode
 from torrentool.exceptions import TorrentError, BencodeDecodingError
@@ -275,3 +277,33 @@ def test_broken_encoding_hint():
     torrent = Torrent.from_string(Bencode.encode(struct))
 
     assert torrent.name == "测试.jpg"
+
+
+def test_from_magnet():
+
+    hash_hex = "0123456789abcdef0123456789abcdef01234567"
+    uri = f"magnet:?xt=urn:btih:{hash_hex}&dn=Some+Name&tr=udp%3A%2F%2Ftracker1%3A1337&tr=udp%3A%2F%2Ftracker2%3A6969"
+
+    torrent = Torrent.from_magnet(uri)
+
+    assert torrent.info_hash == hash_hex
+    assert torrent.name == "Some Name"
+    assert torrent.announce_urls[0] == ["udp://tracker1:1337"]
+    assert torrent.magnet_link == f"magnet:?xt=urn:btih:{hash_hex}"
+
+    hash_base32 = b32encode(bytes.fromhex(hash_hex)).decode()
+    torrent = Torrent.from_magnet(f"magnet:?xt=urn:btih:{hash_base32}")
+    assert torrent.info_hash == hash_hex
+    assert torrent.name is None
+
+    with pytest.raises(TorrentError, match="Unsupported magnet link"):
+        Torrent.from_magnet("magnet:?xt=urn:sha1:0123456789")
+
+
+def test_create_piece_size_override(tmp_path):
+
+    fpath = tmp_path / "big.bin"
+    fpath.write_bytes(b"\0" * 33554433)
+    torrent = Torrent.create_from(fpath, piece_size=65536)
+
+    assert torrent._struct["info"]["piece length"] == 65536
