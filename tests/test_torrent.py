@@ -7,6 +7,7 @@ from uuid import uuid4
 import pytest
 
 from torrentool.api import Torrent
+from torrentool.bencode import Bencode
 from torrentool.exceptions import TorrentError, BencodeDecodingError
 
 
@@ -236,3 +237,24 @@ def test_str(torr_test_file):
 
     t.name = 'Мой торрент'
     assert str(t) == 'Torrent: Мой торрент'
+
+
+def test_broken_encoding_roundtrip():
+    # A non-standard torrent with a latin-1 encoded filename inside.
+    struct = {
+        "info": {
+            "name": "test",
+            "piece length": 16384,
+            "pieces": b"0" * 20,
+            "files": [{"length": 4, "path": [b"J\xf3ban.jpg"]}],
+        }
+    }
+    raw = Bencode.encode(struct)
+    torrent = Torrent.from_string(raw)
+
+    name = torrent.files[0].name
+    assert isinstance(name, str)
+    assert "\ufffd" in name  # A replacement char is shown for display.
+
+    # Round-trip fidelity: re-encoding produces the very same bytes.
+    assert Bencode.encode(torrent._struct) == raw

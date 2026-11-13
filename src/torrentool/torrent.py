@@ -16,6 +16,22 @@ from .utils import get_app_version
 _ITERABLE_TYPES = (list, tuple, set)
 
 
+def decode_display(value: str | bytes) -> str:
+    """Decodes a value into a string for display purposes.
+
+    Strings in non-UTF-8 encodings found in non-standard .torrent files
+    are kept as bytes internally to preserve round-trip fidelity,
+    and are decoded with replacement here.
+
+    :param value:
+
+    """
+    if isinstance(value, (bytes, bytearray)):
+        return bytes(value).decode(errors="replace")
+
+    return value
+
+
 class TorrentFile(NamedTuple):
     """Represents a file in torrent."""
 
@@ -59,7 +75,7 @@ class Torrent:
         http://bittorrent.org/beps/bep_0019.html
 
         """
-        return self._list_getter('url-list')
+        return [decode_display(url) for url in self._list_getter('url-list')]
 
     @webseeds.setter
     def webseeds(self, val: List[str]):
@@ -74,7 +90,7 @@ class Torrent:
         http://bittorrent.org/beps/bep_0017.html
 
         """
-        return self._list_getter('httpseeds')
+        return [decode_display(url) for url in self._list_getter('httpseeds')]
 
     @httpseeds.setter
     def httpseeds(self, val: List[str]):
@@ -94,15 +110,18 @@ class Torrent:
             return files
 
         if 'files' in info:
-            base = info['name']
+            base = decode_display(info['name'])
 
             files.extend(
-                TorrentFile(str(Path(base).joinpath(*file_entry['path'])), file_entry['length'])
+                TorrentFile(
+                    str(Path(base).joinpath(*(decode_display(part) for part in file_entry['path']))),
+                    file_entry['length'],
+                )
                 for file_entry in info['files']
             )
 
         else:
-            files.append(TorrentFile(info['name'], info['length']))
+            files.append(TorrentFile(decode_display(info['name']), info['length']))
 
         return files
 
@@ -144,7 +163,7 @@ class Torrent:
                 return []
             urls = [[urls]]
 
-        return urls
+        return [[decode_display(url) for url in urls_group] for urls_group in urls]
 
     @announce_urls.setter
     def announce_urls(self, val: List[str]):
@@ -174,7 +193,7 @@ class Torrent:
     @property
     def comment(self) -> str | None:
         """Optional. Free-form textual comments of the author."""
-        return self._struct.get('comment')
+        return decode_display(self._struct.get('comment'))
 
     @comment.setter
     def comment(self, val: str):
@@ -183,7 +202,7 @@ class Torrent:
     @property
     def source(self) -> str | None:
         """Optional. Often used by private trackers to create a unique infohash to prevent peer-leak."""
-        return self._struct.get('info').get("source")
+        return decode_display(self._struct.get('info').get("source"))
 
     @source.setter
     def source(self, val: str):
@@ -206,7 +225,7 @@ class Torrent:
     @property
     def created_by(self) -> str | None:
         """Optional. Name and version of the program used to create the .torrent"""
-        return self._struct.get('created by')
+        return decode_display(self._struct.get('created by'))
 
     @created_by.setter
     def created_by(self, val: str):
@@ -234,7 +253,7 @@ class Torrent:
     @property
     def name(self) -> str | None:
         """Torrent name (title)."""
-        return self._struct.get('info', {}).get('name', None)
+        return decode_display(self._struct.get('info', {}).get('name', None))
 
     @name.setter
     def name(self, val: str):

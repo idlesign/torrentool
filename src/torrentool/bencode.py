@@ -1,11 +1,19 @@
 from codecs import encode
-from operator import itemgetter
 from pathlib import Path
 from typing import Union, Tuple, Set
 
 from .exceptions import BencodeDecodingError, BencodeEncodingError
 
 TypeEncodable = Union[str, int, list, set, tuple, dict, bytes, bytearray]
+
+
+def sort_items(items) -> list:
+    """Returns dictionary items sorted by key.
+
+    Tolerates bytestring keys which may appear in non-standard .torrent files.
+
+    """
+    return sorted(items, key=lambda kv: (isinstance(kv[0], bytes), kv[0]))
 
 
 class Bencode:
@@ -42,8 +50,8 @@ class Bencode:
                 result = encode('d', val_encoding)
 
                 # Dictionaries are expected to be sorted by key.
-                for k, v in sorted(val.items(), key=itemgetter(0)):
-                    result += (encode_str(k) + encode_(v))
+                for k, v in sort_items(val.items()):
+                    result += (encode_(k) + encode_(v))
 
                 result += encode('e', val_encoding)
 
@@ -66,14 +74,14 @@ class Bencode:
 
         :param encoded:
 
-        :param byte_keys: Keys values for which should be treated
-            as bytes (as opposed to UTF-8 strings).
+        :param byte_keys: Obsolete, has no effect: undecodable strings
+            are now always kept as bytes to preserve round-trip fidelity.
 
         """
         def create_dict(items) -> dict:
             # Let's guarantee that dictionaries are sorted.
             k_v_pair = zip(*[iter(items)] * 2, strict=False)
-            return dict(sorted(k_v_pair, key=itemgetter(0)))
+            return dict(sort_items(k_v_pair))
 
         def create_list(items) -> list:
             return list(items)
@@ -137,24 +145,15 @@ class Bencode:
                 last_char_idx = char_sub_idx + str_len
 
                 string = encoded[char_sub_idx:last_char_idx]
+
                 try:
                     string = string.decode()
 
                 except UnicodeDecodeError:
-
-                    if stack_items:
-                        latest_stack_item = stack_items[-1]
-                    else:
-                        latest_stack_item = None
-
-                    if byte_keys is None or str(latest_stack_item) in byte_keys:
-                        # Considered to be a bytestring (e.g. `pieces` hashes concatenation).
-                        pass
-
-                    else:
-                        # Try to decode from UTF-8 with fallback to replace
-                        # for non-standard .torrent files.
-                        string = string.decode(errors='replace')
+                    # Kept as bytes: might be a bytestring (e.g. `pieces` hashes concatenation)
+                    # or a string in a non-UTF-8 encoding from a non-standard .torrent file.
+                    # That preserves round-trip fidelity (e.g. for info hash calculation).
+                    pass
 
                 stack_items.append(string)
                 encoded = encoded[last_char_idx:]
@@ -186,8 +185,8 @@ class Bencode:
 
         :param string:
 
-        :param byte_keys: Keys values for which should be treated
-            as bytes (as opposed to UTF-8 strings).
+        :param byte_keys: Obsolete, has no effect: undecodable strings
+            are now always kept as bytes to preserve round-trip fidelity.
 
         """
         if not isinstance(string, (bytes, bytearray)):
@@ -203,8 +202,8 @@ class Bencode:
 
         :param filepath:
 
-        :param byte_keys: Keys values for which should be treated
-            as bytes (as opposed to UTF-8 strings).
+        :param byte_keys: Obsolete, has no effect: undecodable strings
+            are now always kept as bytes to preserve round-trip fidelity.
 
         """
         with Path(str(filepath)).open(mode='rb') as f:
