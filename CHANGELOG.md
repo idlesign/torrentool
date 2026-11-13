@@ -1,6 +1,7 @@
 # torrentool changelog
 
 ### Unreleased
+* ** CLI: added --color/--no-color option (close #32).
 * ** Open trackers list is now fetched from ngosang/trackerslist; the bundled list is refreshed (close #21).
 * ** Torrent.create_from now derives the piece size from the data size (Transmission-style, ~1024 pieces within 16 KiB..16 MiB) instead of a fixed 32/256 KiB choice (close #19).
 
