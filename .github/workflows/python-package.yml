@@ -27,7 +27,7 @@ jobs:
     - name: Install deps
       run: |
         uv sync --only-group tests
-        uv pip install -e . coveralls
+        uv pip install -e ".[cli]" coveralls
     - uses: astral-sh/ruff-action@v3
       with:
         version: 0.13.1
