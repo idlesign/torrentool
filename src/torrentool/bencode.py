@@ -7,17 +7,17 @@ from .exceptions import BencodeDecodingError, BencodeEncodingError
 TypeEncodable = Union[str, int, list, set, tuple, dict, bytes, bytearray]
 
 
-def sort_items(items) -> list:
-    """Returns dictionary items sorted by key.
-
-    Tolerates bytestring keys which may appear in non-standard .torrent files.
-
-    """
-    return sorted(items, key=lambda kv: (isinstance(kv[0], bytes), kv[0]))
-
-
 class Bencode:
     """Exposes utilities for bencoding."""
+
+    @classmethod
+    def _sort_items(cls, items) -> list:
+        """Returns dictionary items sorted by key.
+
+        Tolerates bytestring keys which may appear in non-standard .torrent files.
+
+        """
+        return sorted(items, key=lambda kv: (isinstance(kv[0], bytes), kv[0]))
 
     @classmethod
     def encode(cls, value: TypeEncodable) -> bytes:
@@ -50,7 +50,7 @@ class Bencode:
                 result = encode('d', val_encoding)
 
                 # Dictionaries are expected to be sorted by key.
-                for k, v in sort_items(val.items()):
+                for k, v in cls._sort_items(val.items()):
                     result += (encode_(k) + encode_(v))
 
                 result += encode('e', val_encoding)
@@ -81,7 +81,7 @@ class Bencode:
         def create_dict(items) -> dict:
             # Let's guarantee that dictionaries are sorted.
             k_v_pair = zip(*[iter(items)] * 2, strict=False)
-            return dict(sort_items(k_v_pair))
+            return dict(cls._sort_items(k_v_pair))
 
         def create_list(items) -> list:
             return list(items)

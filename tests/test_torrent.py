@@ -258,3 +258,20 @@ def test_broken_encoding_roundtrip():
 
     # Round-trip fidelity: re-encoding produces the very same bytes.
     assert Bencode.encode(torrent._struct) == raw
+
+
+def test_broken_encoding_hint():
+    # A non-standard torrent with the `encoding` metainfo field set.
+    name_gbk = "测试.jpg".encode("gbk")
+    struct = {
+        "encoding": "GBK",
+        "info": {
+            "name": name_gbk,
+            "piece length": 16384,
+            "pieces": b"0" * 20,
+            "length": 4,
+        },
+    }
+    torrent = Torrent.from_string(Bencode.encode(struct))
+
+    assert torrent.name == "测试.jpg"
