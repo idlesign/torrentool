@@ -12,8 +12,13 @@ from .utils import humanize_filesize, upload_to_cache_server, get_open_trackers_
 
 @click.group()
 @click.version_option(version=VERSION)
-def start():
+@click.option("--color/--no-color", default=None,
+              help="Enable or disable colored output. Default: auto (the NO_COLOR environment variable is also respected).")
+@click.pass_context
+def start(ctx, color):
     """Torrentool command line utilities."""
+
+    ctx.color = color
 
 
 @start.group()
