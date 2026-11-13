@@ -1,5 +1,8 @@
 # torrentool changelog
 
+### Unreleased
+* ** Torrent.create_from now derives the piece size from the data size (Transmission-style, ~1024 pieces within 16 KiB..16 MiB) instead of a fixed 32/256 KiB choice (close #19).
+
 ### v1.2.0 [2023-06-08]
 * ++ Add 'source' property for Torrent (see #27).
 
