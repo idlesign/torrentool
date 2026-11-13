@@ -64,8 +64,7 @@ def upload_to_cache_server(fpath: str) -> str:
 def get_open_trackers_from_remote() -> List[str]:
     """Returns open trackers announce URLs list from remote repo."""
 
-    url_base = 'https://raw.githubusercontent.com/idlesign/torrentool/master/torrentool/repo'
-    url = f'{url_base}/{OPEN_TRACKERS_FILENAME}'
+    url = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
 
     try:
         import requests
@@ -73,11 +72,12 @@ def get_open_trackers_from_remote() -> List[str]:
         response = requests.get(url, timeout=REMOTE_TIMEOUT)
         response.raise_for_status()
 
-        open_trackers = response.text.splitlines()
+        # Entries in the list are separated with blank lines.
+        open_trackers = [stripped for line in response.text.splitlines() if (stripped := line.strip())]
 
-    except (ImportError, requests.RequestException) as e:
+    except (ImportError, requests.RequestException) as error:
 
-        raise RemoteDownloadError(f'Unable to download from {url}: {e}') from e
+        raise RemoteDownloadError(f"Unable to download from {url}: {error}") from error
 
     return open_trackers
 

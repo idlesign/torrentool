@@ -19,12 +19,12 @@ def test_get_opentrackers(monkeypatch, response_mock):
 
     assert isinstance(get_open_trackers_from_local(), list)
 
-    url = 'https://raw.githubusercontent.com/idlesign/torrentool/master/torrentool/repo/open_trackers.ini'
+    url = "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt"
 
-    with response_mock(f'GET  {url} -> 200:1\n2\n'):
-        assert get_open_trackers_from_remote() == ['1', '2']
+    with response_mock(f"GET  {url} -> 200:1\n\n2\n"):
+        assert get_open_trackers_from_remote() == ["1", "2"]
 
-    with response_mock(f'GET  {url} -> 500:'):
+    with response_mock(f"GET  {url} -> 500:"):
         with pytest.raises(RemoteDownloadError):
             get_open_trackers_from_remote()
 
