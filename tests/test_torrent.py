@@ -307,3 +307,14 @@ def test_create_piece_size_override(tmp_path):
     torrent = Torrent.create_from(fpath, piece_size=65536)
 
     assert torrent._struct["info"]["piece length"] == 65536
+
+
+def test_create_path_normalization(tmp_path):
+    # The source path string occurs inside the file name.
+    src_dir = tmp_path / "DIR"
+    src_dir.mkdir()
+    (src_dir / "prefix_DIR_suffix.ext").write_bytes(b"data")
+
+    torrent = Torrent.create_from(src_dir)
+
+    assert torrent.files[0].name == str(Path("DIR") / "prefix_DIR_suffix.ext")

@@ -374,7 +374,7 @@ class Torrent:
             if not file_size:
                 continue
 
-            target_files_.append((fpath, file_size, list(Path(normpath(fpath.replace(src_path, '')).strip(sep)).parts)))
+            target_files_.append((fpath, file_size, list(Path(fpath).relative_to(src_path).parts)))
             total_size += file_size
 
         return target_files_, total_size

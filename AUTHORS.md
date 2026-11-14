@@ -4,6 +4,8 @@ Created by Igor `idle sign` Starikov.
 
 ## Contributors
 
+* satyaog <https://github.com/satyaog>
+
 * Slavik Svyrydiuk <https://github.com/sv0>
 * Hellowlol <https://github.com/Hellowlol>
 * Josh Marshall <https://github.com/neomanic>
