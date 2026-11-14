@@ -1,6 +1,6 @@
 # torrentool changelog
 
-### Unreleased
+### v1.3.0 [2026-11-14]
 * ++ Added piece_size option for create_from to set an explicit piece size instead of the deduced one (close #5).
 * ++ Added support for the encoding metainfo field: strings in the declared encoding (e.g. GBK) are now properly decoded for display (see #30).
 * ++ Added Torrent.from_magnet constructor to get basic data (info hash, name, trackers) from a magnet link (close #12).
