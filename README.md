@@ -57,4 +57,7 @@ my_torrent.to_file()  # Save changes.
 new_torrent = Torrent.create_from('/home/idle/my_stuff/')  # or it could have been a single file
 new_torrent.announce_urls = 'udp://tracker.openbittorrent.com:80'
 new_torrent.to_file('/home/idle/another.torrent')
+
+# Basic data (info hash, name, trackers) can also be read from a magnet link:
+another_torrent = Torrent.from_magnet('magnet:?xt=urn:btih=0123456789abcdef0123456789abcdef01234567&dn=Stuff')
 ```
